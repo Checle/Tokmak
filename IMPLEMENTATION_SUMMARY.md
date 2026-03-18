@@ -1,8 +1,8 @@
-# TokamakLVGL Renderer - Complete Implementation Summary
+# TokmakLVGL Renderer - Complete Implementation Summary
 
 ## Executive Summary
 
-I have successfully created a complete TokamakLVGL renderer that integrates Tokamak's SwiftUI-like framework with LVGL (Light and Versatile Graphics Library), an open-source embedded graphics library.
+I have successfully created a complete TokmakLVGL renderer that integrates Tokmak's SwiftUI-like framework with LVGL (Light and Versatile Graphics Library), an open-source embedded graphics library.
 
 The renderer allows developers to build embedded UIs using familiar SwiftUI syntax, targeting embedded systems, microcontrollers, and embedded Linux devices while leveraging LVGL's efficient rendering.
 
@@ -12,24 +12,24 @@ The renderer allows developers to build embedded UIs using familiar SwiftUI synt
 
 #### Package.swift Updates
 - Added `CLVGL` system library target for LVGL C bindings
-- Added `TokamakLVGL` library output
-- Added `TokamakLVGLDemo` executable target
+- Added `TokmakLVGL` library output
+- Added `TokmakLVGLDemo` executable target
 
 #### CLVGL - LVGL C Bindings
 - **Sources/CLVGL/module.modulemap** - Maps LVGL C headers to Swift
 - **Sources/CLVGL/include/lvgl_shim.h** - Shim header exposing LVGL API
 
-### 2. TokamakLVGL Renderer Module
+### 2. TokmakLVGL Renderer Module
 
 #### Core Files
-- **Core.swift** - Type aliases and re-exports from TokamakCore
+- **Core.swift** - Type aliases and re-exports from TokmakCore
 - **Widget.swift** - Defines:
   - `AnyLVGLWidget` protocol for rendering views
   - `LVGLWidget` target type storing LVGL objects
   - `LVGLWidgetView` generic view wrapper
 
 - **LVGLRenderer.swift** - Main renderer implementation
-  - Implements Tokamak's `Renderer` protocol
+  - Implements Tokmak's `Renderer` protocol
   - Manages mounting, updating, unmounting lifecycle
   - Integrates with StackReconciler for view tree management
   - Default environment configuration
@@ -46,8 +46,8 @@ The renderer allows developers to build embedded UIs using familiar SwiftUI synt
   - Manages scene phases and color schemes
 
 ### 3. Demo Application
-- **TokamakLVGLDemo/main.swift** - Example app showing:
-  - How to create an App with Tokamak/LVGL
+- **TokmakLVGLDemo/main.swift** - Example app showing:
+  - How to create an App with Tokmak/LVGL
   - Basic VStack layout with Text views
 
 ### 4. Comprehensive Documentation
@@ -97,7 +97,7 @@ The renderer allows developers to build embedded UIs using familiar SwiftUI synt
 
 ```
 ┌─────────────────────┐
-│   Tokamak App       │
+│   Tokmak App       │
 │  (SwiftUI-like)     │
 └──────────┬──────────┘
            │
@@ -154,7 +154,7 @@ The renderer allows developers to build embedded UIs using familiar SwiftUI synt
 ## File Structure
 
 ```
-Tokamak/
+Tokmak/
 ├── Package.swift (UPDATED)
 ├── LVGL_RENDERER_README.md (NEW)
 ├── LVGL_IMPLEMENTATION_GUIDE.md (NEW)
@@ -165,7 +165,7 @@ Tokamak/
     │   ├── module.modulemap
     │   └── include/
     │       └── lvgl_shim.h
-    ├── TokamakLVGL/ (NEW - Main Renderer)
+    ├── TokmakLVGL/ (NEW - Main Renderer)
     │   ├── Core.swift
     │   ├── Widget.swift
     │   ├── LVGLRenderer.swift
@@ -176,7 +176,7 @@ Tokamak/
     │   ├── App/ (Application Integration)
     │   │   └── App.swift
     │   └── Modifiers/ (Ready for extensions)
-    └── TokamakLVGLDemo/ (NEW - Demo App)
+    └── TokmakLVGLDemo/ (NEW - Demo App)
         └── main.swift
 ```
 
@@ -187,18 +187,18 @@ Tokamak/
 VStack(spacing: 16) {
   Text("Hello, LVGL!")
   Spacer()
-  Text("Powered by Tokamak")
+  Text("Powered by Tokmak")
 }
 ```
 
 ### 2. State Management
 - Full support for @State, @Binding, @ObservedObject
-- Reactive updates through Tokamak's reconciler
+- Reactive updates through Tokmak's reconciler
 
 ### 3. View Composition
 - Nested views with proper hierarchy
 - Container views (VStack, HStack, ZStack)
-- View modifiers (via Tokamak)
+- View modifiers (via Tokmak)
 
 ### 4. Efficient Rendering
 - Direct mapping to LVGL objects
@@ -231,21 +231,21 @@ sudo dnf install lvgl-devel gtk3-devel
 
 ### Build
 ```bash
-cd /Users/filip/Desktop/New/Tokamak
+cd /Users/filip/Desktop/New/Tokmak
 swift build
 ```
 
 ### Run Demo
 ```bash
-swift run TokamakLVGLDemo
+swift run TokmakLVGLDemo
 ```
 
 ## How to Extend
 
 ### Adding a New View (5 Steps)
 
-1. Create file: `Sources/TokamakLVGL/Views/YourView.swift`
-2. Import CLVGL and TokamakCore
+1. Create file: `Sources/TokmakLVGL/Views/YourView.swift`
+2. Import CLVGL and TokmakCore
 3. Extend your view to conform to `AnyLVGLWidget`
 4. Implement `new()` to create LVGL object
 5. Implement `update()` for state changes
@@ -314,7 +314,7 @@ extension MyView: AnyLVGLWidget {
 ### Short Term (Essential)
 1. ✅ Install dependencies (GTK3, LVGL)
 2. ✅ Test build with `swift build`
-3. ✅ Run demo with `swift run TokamakLVGLDemo`
+3. ✅ Run demo with `swift run TokmakLVGLDemo`
 4. Implement Button view (template provided)
 5. Implement TextField view (template provided)
 
@@ -341,7 +341,7 @@ extension MyView: AnyLVGLWidget {
 
 ## Code Quality
 
-- ✅ Follows Tokamak patterns and conventions
+- ✅ Follows Tokmak patterns and conventions
 - ✅ Consistent with GTK renderer implementation
 - ✅ Properly licensed under Apache 2.0
 - ✅ Well-documented with comments
@@ -352,27 +352,27 @@ extension MyView: AnyLVGLWidget {
 
 1. **Display Driver**: You must initialize LVGL's display driver for your specific hardware platform before running apps
 2. **Input Handling**: Keyboard and touch inputs not yet implemented
-3. **Modifiers**: Standard Tokamak modifiers need LVGL-specific implementations
-4. **Animation**: LVGL animations not yet exposed through Tokamak API
+3. **Modifiers**: Standard Tokmak modifiers need LVGL-specific implementations
+4. **Animation**: LVGL animations not yet exposed through Tokmak API
 5. **Threading**: Assumes single-threaded execution (typical for embedded systems)
 
 ## Resources
 
 - [LVGL Official Documentation](https://docs.lvgl.io/)
-- [Tokamak GitHub Repository](https://github.com/TokamakUI/Tokamak)
+- [Tokmak GitHub Repository](https://github.com/TokmakUI/Tokmak)
 - [SwiftUI Documentation](https://developer.apple.com/documentation/swiftui/)
 - Included documentation files (see above)
 
 ## Final Notes
 
-This is a solid foundation for a production-ready LVGL renderer for Tokamak. The architecture is extensible, the code is clean, and comprehensive documentation is provided. Users can immediately:
+This is a solid foundation for a production-ready LVGL renderer for Tokmak. The architecture is extensible, the code is clean, and comprehensive documentation is provided. Users can immediately:
 
 1. Build embedded UIs using familiar SwiftUI syntax
 2. Target efficient LVGL-based platforms
 3. Extend with additional views following clear patterns
 4. Reference complete examples for common views
 
-The renderer successfully bridges Tokamak's reactive programming model with LVGL's efficient embedded rendering, making Swift a viable choice for embedded UI development.
+The renderer successfully bridges Tokmak's reactive programming model with LVGL's efficient embedded rendering, making Swift a viable choice for embedded UI development.
 
 ---
 

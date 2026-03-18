@@ -1,20 +1,20 @@
-# `Renderers` in Tokamak
+# `Renderers` in Tokmak
 
 **Author: [@carson-katri](https://github.com/carson-katri)**
 
-Tokamak is a flexible library. `TokamakCore` provides the SwiftUI API, which your `Renderer` can use
+Tokmak is a flexible library. `TokmakCore` provides the SwiftUI API, which your `Renderer` can use
 to construct a representation of `Views` that your platform understands.
 
-To explain the creation of `Renderers`, we’ll be creating a simple one: `TokamakStaticHTML` (which
-you can find in the `Tokamak` repository).
+To explain the creation of `Renderers`, we’ll be creating a simple one: `TokmakStaticHTML` (which
+you can find in the `Tokmak` repository).
 
 Before we create the `Renderer`, we need to understand the requirements of our platform:
 
 1. Stateful apps cannot be created. This simplifies the scope of our project, as we only have to
    render once. However, if you are building a `Renderer` that supports state changes, the process
-   is largely the same. `TokamakCore`’s `StackReconciler` will let your `Renderer` know when a
+   is largely the same. `TokmakCore`’s `StackReconciler` will let your `Renderer` know when a
    `View` has to be redrawn.
-2. HTML should be rendered. `TokamakDOM` provides HTML representations of many `Views`, so we can
+2. HTML should be rendered. `TokmakDOM` provides HTML representations of many `Views`, so we can
    utilize it. However, we will cover how to provide custom `View` bodies your `Renderer` can
    understand, and when you are required to do so.
 
@@ -38,73 +38,73 @@ So, what goes into a `Renderer`?
 
 That’s it! Let’s get our project set up.
 
-## `TokamakStaticHTML` Setup
+## `TokmakStaticHTML` Setup
 
 Every `Renderer` can choose what `Views`, `ViewModifiers`, property wrappers, etc. are available to
-use. A `Core.swift` file is used to re-export these symbols. For `TokamakStaticHTML`, we’ll use the
+use. A `Core.swift` file is used to re-export these symbols. For `TokmakStaticHTML`, we’ll use the
 following `Core.swift` file:
 
 ```swift
-import TokamakCore
+import TokmakCore
 
 // MARK: Environment & State
 
-public typealias Environment = TokamakCore.Environment
+public typealias Environment = TokmakCore.Environment
 
 // MARK: Modifiers & Styles
 
-public typealias ViewModifier = TokamakCore.ViewModifier
-public typealias ModifiedContent = TokamakCore.ModifiedContent
+public typealias ViewModifier = TokmakCore.ViewModifier
+public typealias ModifiedContent = TokmakCore.ModifiedContent
 
-public typealias DefaultListStyle = TokamakCore.DefaultListStyle
-public typealias PlainListStyle = TokamakCore.PlainListStyle
-public typealias InsetListStyle = TokamakCore.InsetListStyle
-public typealias GroupedListStyle = TokamakCore.GroupedListStyle
-public typealias InsetGroupedListStyle = TokamakCore.InsetGroupedListStyle
+public typealias DefaultListStyle = TokmakCore.DefaultListStyle
+public typealias PlainListStyle = TokmakCore.PlainListStyle
+public typealias InsetListStyle = TokmakCore.InsetListStyle
+public typealias GroupedListStyle = TokmakCore.GroupedListStyle
+public typealias InsetGroupedListStyle = TokmakCore.InsetGroupedListStyle
 
 // MARK: Shapes
 
-public typealias Shape = TokamakCore.Shape
+public typealias Shape = TokmakCore.Shape
 
-public typealias Capsule = TokamakCore.Capsule
-public typealias Circle = TokamakCore.Circle
-public typealias Ellipse = TokamakCore.Ellipse
-public typealias Path = TokamakCore.Path
-public typealias Rectangle = TokamakCore.Rectangle
-public typealias RoundedRectangle = TokamakCore.RoundedRectangle
+public typealias Capsule = TokmakCore.Capsule
+public typealias Circle = TokmakCore.Circle
+public typealias Ellipse = TokmakCore.Ellipse
+public typealias Path = TokmakCore.Path
+public typealias Rectangle = TokmakCore.Rectangle
+public typealias RoundedRectangle = TokmakCore.RoundedRectangle
 
 // MARK: Primitive values
 
-public typealias Color = TokamakCore.Color
-public typealias Font = TokamakCore.Font
+public typealias Color = TokmakCore.Color
+public typealias Font = TokmakCore.Font
 
-public typealias CGAffineTransform = TokamakCore.CGAffineTransform
-public typealias CGPoint = TokamakCore.CGPoint
-public typealias CGRect = TokamakCore.CGRect
-public typealias CGSize = TokamakCore.CGSize
+public typealias CGAffineTransform = TokmakCore.CGAffineTransform
+public typealias CGPoint = TokmakCore.CGPoint
+public typealias CGRect = TokmakCore.CGRect
+public typealias CGSize = TokmakCore.CGSize
 
 // MARK: Views
 
-public typealias Divider = TokamakCore.Divider
-public typealias ForEach = TokamakCore.ForEach
-public typealias GridItem = TokamakCore.GridItem
-public typealias Group = TokamakCore.Group
-public typealias HStack = TokamakCore.HStack
-public typealias LazyHGrid = TokamakCore.LazyHGrid
-public typealias LazyVGrid = TokamakCore.LazyVGrid
-public typealias List = TokamakCore.List
-public typealias ScrollView = TokamakCore.ScrollView
-public typealias Section = TokamakCore.Section
-public typealias Spacer = TokamakCore.Spacer
-public typealias Text = TokamakCore.Text
-public typealias VStack = TokamakCore.VStack
-public typealias ZStack = TokamakCore.ZStack
+public typealias Divider = TokmakCore.Divider
+public typealias ForEach = TokmakCore.ForEach
+public typealias GridItem = TokmakCore.GridItem
+public typealias Group = TokmakCore.Group
+public typealias HStack = TokmakCore.HStack
+public typealias LazyHGrid = TokmakCore.LazyHGrid
+public typealias LazyVGrid = TokmakCore.LazyVGrid
+public typealias List = TokmakCore.List
+public typealias ScrollView = TokmakCore.ScrollView
+public typealias Section = TokmakCore.Section
+public typealias Spacer = TokmakCore.Spacer
+public typealias Text = TokmakCore.Text
+public typealias VStack = TokmakCore.VStack
+public typealias ZStack = TokmakCore.ZStack
 
 // MARK: Special Views
 
-public typealias View = TokamakCore.View
-public typealias AnyView = TokamakCore.AnyView
-public typealias EmptyView = TokamakCore.EmptyView
+public typealias View = TokmakCore.View
+public typealias AnyView = TokmakCore.AnyView
+public typealias EmptyView = TokmakCore.EmptyView
 
 // MARK: Misc
 
@@ -125,7 +125,7 @@ If you recall, we defined a `Target` as:
 
 > the destination for rendered `Views`
 
-In `TokamakStaticHTML`, this would be a tag in an `HTML` file. A tag has several properties,
+In `TokmakStaticHTML`, this would be a tag in an `HTML` file. A tag has several properties,
 although we don’t need to worry about all of them. For now, we can consider a tag to have:
 
 - The HTML for the tag itself (outer HTML)
@@ -146,7 +146,7 @@ public final class HTMLTarget: Target {
 }
 ```
 
-`AnyHTML` type is coming from `TokamakDOM`, which you can declare as a dependency. The target stores
+`AnyHTML` type is coming from `TokmakDOM`, which you can declare as a dependency. The target stores
 the `View` it hosts, the `HTML` that represents it, and its child elements.
 
 Lastly, we can also provide an HTML string representation of the target:
@@ -197,7 +197,7 @@ public init<V: View>(_ view: V) {
     renderer: self,
     environment: EnvironmentValues()
   ) { closure in
-    fatalError("Stateful apps cannot be created with TokamakStaticHTML")
+    fatalError("Stateful apps cannot be created with TokmakStaticHTML")
   }
 }
 ```
@@ -246,16 +246,16 @@ public func mountTarget(to parent: HTMLTarget, with host: MountedHost) -> HTMLTa
 
 1. We use the `mapAnyView` function to convert the `AnyView` passed in to `AnyHTML`, which can be
    used with our `HTMLTarget`.
-2. `ParentView` is a special type of `View` in Tokamak. It indicates that the view has no
+2. `ParentView` is a special type of `View` in Tokmak. It indicates that the view has no
    representation itself, and is purely a container for children (e.g. `ForEach` or `Group`).
 3. We create a new `HTMLTarget` for the view, assign it as a child of the parent, and return it.
 
-The other two functions required by the `Renderer` protocol can crash, as `TokamakStaticHTML`
+The other two functions required by the `Renderer` protocol can crash, as `TokmakStaticHTML`
 doesn’t support state changes:
 
 ```swift
 public func update(target: HTMLTarget, with host: MountedHost) {
-  fatalError("Stateful apps cannot be created with TokamakStaticHTML")
+  fatalError("Stateful apps cannot be created with TokmakStaticHTML")
 }
 
 public func unmount(
@@ -264,7 +264,7 @@ public func unmount(
   with host: MountedHost,
   completion: @escaping () -> ()
 ) {
-  fatalError("Stateful apps cannot be created with TokamakStaticHTML")
+  fatalError("Stateful apps cannot be created with TokmakStaticHTML")
 }
 ```
 
@@ -298,7 +298,7 @@ This spits out:
 ```
 
 Congratulations 🎉 You successfully wrote a `Renderer`. We can’t wait to see what platforms you’ll
-bring Tokamak to.
+bring Tokmak to.
 
 ## Providing platform-specific primitives
 
@@ -350,7 +350,7 @@ public final class StaticHTMLRenderer: Renderer {
 ```
 
 In a conformance to `HTMLPrimitive` we can provide a `View` that our
-`Renderer` understands. For instance, `TokamakDOM` (and `TokamakStaticHTML` by extension) use the
+`Renderer` understands. For instance, `TokmakDOM` (and `TokmakStaticHTML` by extension) use the
 `HTML` view. Let’s look at a simpler version of this view:
 
 ```swift
@@ -376,7 +376,7 @@ worrying about the `associatedtype`s involved with `View`.
 
 ### `HTMLPrimitive`
 
-Now we can use `HTML` to override the body of the primitive `Views` provided by `TokamakCore`:
+Now we can use `HTML` to override the body of the primitive `Views` provided by `TokmakCore`:
 
 ```swift
 extension Text: HTMLPrimitive {
@@ -400,7 +400,7 @@ Then we were able to access the properties of the HTML.
 
 ### Proxies
 
-Proxies allow access to internal properties of views implemented by `TokamakCore`. For instance, to
+Proxies allow access to internal properties of views implemented by `TokmakCore`. For instance, to
 access the storage of the `Text` view, we were required to use a `_TextProxy`.
 
 Proxies contain all of the properties of the primitive necessary to build your platform-specific

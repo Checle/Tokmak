@@ -15,7 +15,7 @@ jobs:
       - name: Checkout Branch
         uses: actions/checkout@v2
       - name: Build Test Target
-        run: swift build -Xswiftc -profile-coverage-mapping -Xswiftc -profile-generate --product TokamakPackageTests
+        run: swift build -Xswiftc -profile-coverage-mapping -Xswiftc -profile-generate --product TokmakPackageTests
       - name: Run Tests
         run: swift test --enable-code-coverage --skip-build
       - name: Generate Branch Coverage Report

@@ -1,14 +1,14 @@
-# TokamakLVGL View Implementation Examples
+# TokmakLVGL View Implementation Examples
 
 This file contains complete examples of how to implement additional views beyond the basic Text, VStack, HStack, and Spacer that are already included.
 
 ## Button Implementation
 
-Create `Sources/TokamakLVGL/Views/Button.swift`:
+Create `Sources/TokmakLVGL/Views/Button.swift`:
 
 ```swift
 import CLVGL
-import TokamakCore
+import TokmakCore
 
 // Store button action callbacks
 private var buttonActionsMap: [UnsafeMutablePointer<lv_obj_t>: () -> Void] = [:]
@@ -46,11 +46,11 @@ extension Button: AnyLVGLWidget {
 
 ## Image Implementation
 
-Create `Sources/TokamakLVGL/Views/Image.swift`:
+Create `Sources/TokmakLVGL/Views/Image.swift`:
 
 ```swift
 import CLVGL
-import TokamakCore
+import TokmakCore
 
 extension Image: AnyLVGLWidget {
   func new(_ renderer: LVGLRenderer) -> UnsafeMutablePointer<lv_obj_t> {
@@ -77,11 +77,11 @@ extension Image: AnyLVGLWidget {
 
 ## TextField Implementation
 
-Create `Sources/TokamakLVGL/Views/TextField.swift`:
+Create `Sources/TokmakLVGL/Views/TextField.swift`:
 
 ```swift
 import CLVGL
-import TokamakCore
+import TokmakCore
 
 extension TextField: AnyLVGLWidget {
   func new(_ renderer: LVGLRenderer) -> UnsafeMutablePointer<lv_obj_t> {
@@ -111,11 +111,11 @@ extension TextField: AnyLVGLWidget {
 
 ## ScrollView Implementation
 
-Create `Sources/TokamakLVGL/Views/ScrollView.swift`:
+Create `Sources/TokmakLVGL/Views/ScrollView.swift`:
 
 ```swift
 import CLVGL
-import TokamakCore
+import TokmakCore
 
 extension ScrollView: AnyLVGLWidget {
   func new(_ renderer: LVGLRenderer) -> UnsafeMutablePointer<lv_obj_t> {
@@ -143,11 +143,11 @@ extension ScrollView: AnyLVGLWidget {
 
 ## Divider Implementation
 
-Create `Sources/TokamakLVGL/Views/Divider.swift`:
+Create `Sources/TokmakLVGL/Views/Divider.swift`:
 
 ```swift
 import CLVGL
-import TokamakCore
+import TokmakCore
 
 extension Divider: AnyLVGLWidget {
   func new(_ renderer: LVGLRenderer) -> UnsafeMutablePointer<lv_obj_t> {
@@ -173,11 +173,11 @@ extension Divider: AnyLVGLWidget {
 
 ## Toggle/Switch Implementation
 
-Create `Sources/TokamakLVGL/Views/Toggle.swift`:
+Create `Sources/TokmakLVGL/Views/Toggle.swift`:
 
 ```swift
 import CLVGL
-import TokamakCore
+import TokmakCore
 
 extension Toggle: AnyLVGLWidget {
   func new(_ renderer: LVGLRenderer) -> UnsafeMutablePointer<lv_obj_t> {
@@ -200,11 +200,11 @@ extension Toggle: AnyLVGLWidget {
 
 ## Slider Implementation
 
-Create `Sources/TokamakLVGL/Views/Slider.swift`:
+Create `Sources/TokmakLVGL/Views/Slider.swift`:
 
 ```swift
 import CLVGL
-import TokamakCore
+import TokmakCore
 
 // Note: Slider is not a standard SwiftUI view, 
 // but you might want to create it as a custom view
@@ -244,11 +244,11 @@ struct LVGLSlider: View, AnyLVGLWidget {
 
 ## Group Implementation
 
-Create `Sources/TokamakLVGL/Views/Group.swift`:
+Create `Sources/TokmakLVGL/Views/Group.swift`:
 
 ```swift
 import CLVGL
-import TokamakCore
+import TokmakCore
 
 extension Group: AnyLVGLWidget {
   func new(_ renderer: LVGLRenderer) -> UnsafeMutablePointer<lv_obj_t> {
@@ -273,11 +273,11 @@ extension Group: AnyLVGLWidget {
 
 ### Padding Modifier
 
-Create `Sources/TokamakLVGL/Modifiers/Padding.swift`:
+Create `Sources/TokmakLVGL/Modifiers/Padding.swift`:
 
 ```swift
 import CLVGL
-import TokamakCore
+import TokmakCore
 
 extension ModifiedContent where Modifier: _PaddingModifier {
   // Custom padding handling for LVGL
@@ -287,11 +287,11 @@ extension ModifiedContent where Modifier: _PaddingModifier {
 
 ### Background Color Modifier
 
-Create `Sources/TokamakLVGL/Modifiers/Background.swift`:
+Create `Sources/TokmakLVGL/Modifiers/Background.swift`:
 
 ```swift
 import CLVGL
-import TokamakCore
+import TokmakCore
 
 extension ModifiedContent where Modifier: _BackgroundModifier {
   // Convert color to LVGL color format and apply to widget
@@ -300,11 +300,11 @@ extension ModifiedContent where Modifier: _BackgroundModifier {
 
 ### Frame Modifier
 
-Create `Sources/TokamakLVGL/Modifiers/Frame.swift`:
+Create `Sources/TokmakLVGL/Modifiers/Frame.swift`:
 
 ```swift
 import CLVGL
-import TokamakCore
+import TokmakCore
 
 extension ModifiedContent where Modifier: _FrameModifier {
   // Set explicit size on LVGL object
@@ -318,11 +318,11 @@ extension ModifiedContent where Modifier: _FrameModifier {
 
 If you want to create a custom view that renders to LVGL:
 
-Create `Sources/TokamakLVGL/Views/CustomProgressBar.swift`:
+Create `Sources/TokmakLVGL/Views/CustomProgressBar.swift`:
 
 ```swift
 import CLVGL
-import TokamakCore
+import TokmakCore
 
 struct CustomProgressBar: View, AnyLVGLWidget {
   var value: Double // 0.0 to 1.0
@@ -357,13 +357,13 @@ struct CustomProgressBar: View, AnyLVGLWidget {
 
 When implementing a new view:
 
-- [ ] Create file in `Sources/TokamakLVGL/Views/`
+- [ ] Create file in `Sources/TokmakLVGL/Views/`
 - [ ] Conform to `AnyLVGLWidget` protocol
 - [ ] Implement `new()` - creates and configures LVGL object
 - [ ] Implement `update()` - updates object on state changes
 - [ ] Set `expand` property for flexible layouts if needed
 - [ ] Handle text conversion (Swift String → C string)
-- [ ] Extract values using internal Tokamak proxy types
+- [ ] Extract values using internal Tokmak proxy types
 - [ ] Test with demo app
 - [ ] Add documentation
 

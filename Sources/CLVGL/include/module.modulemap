@@ -1,4 +1,3 @@
-module CLVGL [system] {
-  header "CLVGL.h"
-  export *
+module CLVGL {
+    umbrella header "CLVGL.h"
 }

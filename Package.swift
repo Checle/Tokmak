@@ -2,28 +2,27 @@
 
 import PackageDescription
 
+#if os(macOS)
+let SDLCFlags = ["-I/opt/homebrew/include"]
+#else
+let SDLCFlags = [String]()
+#endif
+
 let package = Package(
-  name: "Tokamak",
+  name: "Tokmak",
   platforms: [
     .macOS(.v11),
     .iOS(.v13),
   ],
   products: [
-    .executable(
-      name: "TokamakDemo",
-      targets: ["TokamakDemo"]
+    .library(name: "CLVGL", targets: ["CLVGL"]),
+    .library(
+      name: "TokmakLVGL",
+      targets: ["TokmakLVGL"]
     ),
     .library(
-      name: "TokamakLVGL",
-      targets: ["TokamakLVGL"]
-    ),
-    .executable(
-      name: "TokamakLVGLDemo",
-      targets: ["TokamakLVGLDemo"]
-    ),
-    .library(
-      name: "TokamakShim",
-      targets: ["TokamakShim"]
+      name: "TokmakShim",
+      targets: ["TokmakShim"]
     ),
   ],
   dependencies: [
@@ -32,17 +31,13 @@ let package = Package(
       from: "0.12.0"
     ),
     .package(
-      url: "https://github.com/google/swift-benchmark",
-      from: "0.1.2"
-    ),
-    .package(
       url: "https://github.com/pointfreeco/swift-snapshot-testing.git",
       from: "1.9.0"
     ),
   ],
   targets: [
     .target(
-      name: "TokamakCore",
+      name: "TokmakCore",
       dependencies: [
         .product(
           name: "OpenCombineShim",
@@ -51,54 +46,41 @@ let package = Package(
       ]
     ),
     .target(
-      name: "TokamakShim",
+      name: "TokmakShim",
       dependencies: [
-        .target(name: "TokamakLVGL"),
+        .target(name: "TokmakLVGL"),
       ]
     ),
     .target(
       name: "CLVGL",
+      dependencies: [],
+      publicHeadersPath: "include",
       cSettings: [
-        .headerSearchPath("../../External/lvgl"),
-      ]
+        .headerSearchPath("lv_drivers"),
+        .headerSearchPath("lvgl"),
+        .headerSearchPath("."),
+        .unsafeFlags(SDLCFlags + ["-DLV_LVGL_H_INCLUDE_SIMPLE"]),
+      ],
+      linkerSettings: [.unsafeFlags(["-L/opt/homebrew/lib", "-lSDL2"])]
     ),
     .target(
-      name: "TokamakLVGL",
+      name: "TokmakLVGL",
       dependencies: [
-        "TokamakCore", "CLVGL",
+        "TokmakCore", "CLVGL",
         .product(
           name: "OpenCombineShim",
           package: "OpenCombine"
         ),
       ]
     ),
-    .executableTarget(
-      name: "TokamakLVGLDemo",
-      dependencies: ["TokamakLVGL"]
-    ),
-    .executableTarget(
-      name: "TokamakCoreBenchmark",
-      dependencies: [
-        .product(name: "Benchmark", package: "swift-benchmark"),
-        "TokamakCore",
-        "TokamakTestRenderer",
-      ]
-    ),
-    .executableTarget(
-      name: "TokamakDemo",
-      dependencies: [
-        "TokamakShim",
-      ],
-      resources: [.copy("logo-header.png")]
-    ),
     .target(
-      name: "TokamakTestRenderer",
-      dependencies: ["TokamakCore"]
+      name: "TokmakTestRenderer",
+      dependencies: ["TokmakCore"]
     ),
     .testTarget(
-      name: "TokamakLayoutTests",
+      name: "TokmakLayoutTests",
       dependencies: [
-        "TokamakCore",
+        "TokmakCore",
         .product(
           name: "SnapshotTesting",
           package: "swift-snapshot-testing",
@@ -107,15 +89,15 @@ let package = Package(
       ]
     ),
     .testTarget(
-      name: "TokamakReconcilerTests",
+      name: "TokmakReconcilerTests",
       dependencies: [
-        "TokamakCore",
-        "TokamakTestRenderer",
+        "TokmakCore",
+        "TokmakTestRenderer",
       ]
     ),
     .testTarget(
-      name: "TokamakTests",
-      dependencies: ["TokamakTestRenderer"]
+      name: "TokmakTests",
+      dependencies: ["TokmakTestRenderer"]
     ),
   ]
 )

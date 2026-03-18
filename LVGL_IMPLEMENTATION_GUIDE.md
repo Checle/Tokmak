@@ -1,12 +1,12 @@
-# TokamakLVGL Implementation Guide
+# TokmakLVGL Implementation Guide
 
-This guide explains how to extend the TokamakLVGL renderer with additional views and features.
+This guide explains how to extend the TokmakLVGL renderer with additional views and features.
 
 ## Project Structure
 
 ```
-Sources/TokamakLVGL/
-├── Core.swift                 # Type aliases and re-exports from TokamakCore
+Sources/TokmakLVGL/
+├── Core.swift                 # Type aliases and re-exports from TokmakCore
 ├── LVGLRenderer.swift        # Main renderer implementation
 ├── Widget.swift              # Target type and AnyLVGLWidget protocol
 ├── Views/
@@ -20,7 +20,7 @@ Sources/TokamakLVGL/
 └── App/
     └── App.swift             # App launching and lifecycle
 
-Sources/TokamakLVGLDemo/
+Sources/TokmakLVGLDemo/
 └── main.swift                # Demo application
 
 Sources/CLVGL/
@@ -66,11 +66,11 @@ extension Text: AnyLVGLWidget {
 
 ### 2. Button View (Template)
 
-To add Button support, create `Sources/TokamakLVGL/Views/Button.swift`:
+To add Button support, create `Sources/TokmakLVGL/Views/Button.swift`:
 
 ```swift
 import CLVGL
-import TokamakCore
+import TokmakCore
 
 extension Button: AnyLVGLWidget {
   func new(_ renderer: LVGLRenderer) -> UnsafeMutablePointer<lv_obj_t> {
@@ -105,7 +105,7 @@ Stack views are container views that arrange their children. These need special 
 
 ```swift
 import CLVGL
-import TokamakCore
+import TokmakCore
 
 extension VStack: AnyLVGLWidget {
   func new(_ renderer: LVGLRenderer) -> UnsafeMutablePointer<lv_obj_t> {
@@ -145,12 +145,12 @@ extension HStack: AnyLVGLWidget {
 
 ### 4. View Modifiers
 
-Modifiers like `.padding()`, `.frame()`, etc. need special handling. Add support in `Sources/TokamakLVGL/Modifiers/`:
+Modifiers like `.padding()`, `.frame()`, etc. need special handling. Add support in `Sources/TokmakLVGL/Modifiers/`:
 
 ```swift
 // Modifiers/Frame.swift
 import CLVGL
-import TokamakCore
+import TokmakCore
 
 extension ModifiedContent where Modifier: _FrameModifier {
   // Handle frame modification
@@ -247,8 +247,8 @@ Each view type follows this pattern:
 
 ## Testing Your Implementation
 
-1. Add views to `TokamakLVGLDemo`
-2. Run the demo: `swift run TokamakLVGLDemo`
+1. Add views to `TokmakLVGLDemo`
+2. Run the demo: `swift run TokmakLVGLDemo`
 3. Check visual output on LVGL display
 4. Verify state updates work correctly
 
@@ -292,5 +292,5 @@ if case let .widget(w) = widget.storage {
 ## References
 
 - LVGL API: https://docs.lvgl.io/latest/en/html/
-- Tokamak Core: https://github.com/TokamakUI/Tokamak/tree/main/Sources/TokamakCore
-- GTK Renderer (reference): `Sources/TokamakGTK/`
+- Tokmak Core: https://github.com/TokmakUI/Tokmak/tree/main/Sources/TokmakCore
+- GTK Renderer (reference): `Sources/TokmakGTK/`

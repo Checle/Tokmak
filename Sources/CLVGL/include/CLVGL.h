@@ -1,6 +1,6 @@
-#ifndef CLVGL_H
-#define CLVGL_H
+#pragma once
 
-#include "lvgl.h"
+#include "../lv_conf.h"
+#include "../lv_drv_conf.h"
 
-#endif
+#include "../lvgl/lvgl.h"

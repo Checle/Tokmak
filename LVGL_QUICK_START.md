@@ -1,9 +1,9 @@
-# TokamakLVGL Quick Start Guide
+# TokmakLVGL Quick Start Guide
 
 ## File Structure Created
 
 ```
-Tokamak/
+Tokmak/
 ├── Package.swift (updated)
 ├── LVGL_RENDERER_README.md (new)
 ├── LVGL_IMPLEMENTATION_GUIDE.md (new)
@@ -12,7 +12,7 @@ Tokamak/
     │   ├── module.modulemap
     │   └── include/
     │       └── lvgl_shim.h
-    ├── TokamakLVGL/ (new)
+    ├── TokmakLVGL/ (new)
     │   ├── Core.swift
     │   ├── Widget.swift
     │   ├── LVGLRenderer.swift
@@ -23,7 +23,7 @@ Tokamak/
     │   ├── App/
     │   │   └── App.swift
     │   └── Modifiers/ (ready for extensions)
-    └── TokamakLVGLDemo/ (new)
+    └── TokmakLVGLDemo/ (new)
         └── main.swift
 ```
 
@@ -44,20 +44,20 @@ sudo apt-get install liblvgl-dev
 ### 2. Build the Project
 
 ```bash
-cd /Users/filip/Desktop/New/Tokamak
+cd /Users/filip/Desktop/New/Tokmak
 swift build
 ```
 
 ### 3. Run the Demo
 
 ```bash
-swift run TokamakLVGLDemo
+swift run TokmakLVGLDemo
 ```
 
 ## Basic App Example
 
 ```swift
-import TokamakLVGL
+import TokmakLVGL
 
 struct MyApp: App {
   var body: some Scene {
@@ -65,7 +65,7 @@ struct MyApp: App {
       VStack(spacing: 16) {
         Text("Hello, LVGL!")
         Spacer()
-        Text("Powered by Tokamak")
+        Text("Powered by Tokmak")
       }
       .padding()
     }
@@ -84,11 +84,11 @@ struct Main {
 
 ### Template for Adding a View
 
-Create `Sources/TokamakLVGL/Views/YourView.swift`:
+Create `Sources/TokmakLVGL/Views/YourView.swift`:
 
 ```swift
 import CLVGL
-import TokamakCore
+import TokmakCore
 
 extension YourView: AnyLVGLWidget {
   func new(_ renderer: LVGLRenderer) -> UnsafeMutablePointer<lv_obj_t> {
@@ -117,9 +117,9 @@ extension YourView: AnyLVGLWidget {
 ## Architecture Overview
 
 ```
-Tokamak App Code
+Tokmak App Code
        ↓
-StackReconciler (from TokamakCore)
+StackReconciler (from TokmakCore)
        ↓
 LVGLRenderer.mountTarget() → creates lv_obj_t
 LVGLRenderer.update()     → updates lv_obj_t
@@ -160,8 +160,8 @@ protocol AnyLVGLWidget {
 ```
 
 ### LVGLRenderer
-Main renderer class that bridges Tokamak to LVGL:
-- Implements `Renderer` protocol from TokamakCore
+Main renderer class that bridges Tokmak to LVGL:
+- Implements `Renderer` protocol from TokmakCore
 - Manages reconciliation cycle
 - Handles object lifecycle
 
@@ -235,5 +235,5 @@ void setup_display() {
 ## Resources
 
 - [LVGL Documentation](https://docs.lvgl.io/)
-- [Tokamak GitHub](https://github.com/TokamakUI/Tokamak)
+- [Tokmak GitHub](https://github.com/TokmakUI/Tokmak)
 - Full guides: See `LVGL_RENDERER_README.md` and `LVGL_IMPLEMENTATION_GUIDE.md`
