@@ -30,7 +30,7 @@ public protocol Scene {
   func walk<V: SceneWalker>(_ visitor: inout V)
 
   /// Traverse the dynamic properties of this scene.
-  mutating func visitDynamicProperties<V: DynamicPropertyVisitor>(_ visitor: inout V)
+  mutating func visitProperties<V: PropertyVisitor>(_ visitor: inout V)
 }
 
 public extension Scene {
@@ -38,7 +38,7 @@ public extension Scene {
     body.walk(&visitor)
   }
 
-  mutating func visitDynamicProperties<V: DynamicPropertyVisitor>(_ visitor: inout V) {}
+  mutating func visitProperties<V: PropertyVisitor>(_ visitor: inout V) {}
 }
 
 protocol TitledScene {
@@ -57,7 +57,7 @@ public protocol SceneDeferredToRenderer {
 
 extension Never: Scene {
   public func walk<V: SceneWalker>(_ visitor: inout V) {}
-  public mutating func visitDynamicProperties<V: DynamicPropertyVisitor>(_ visitor: inout V) {}
+  public mutating func visitProperties<V: PropertyVisitor>(_ visitor: inout V) {}
 }
 
 /// Calls `fatalError` with an explanation that a given `type` is a primitive `Scene`

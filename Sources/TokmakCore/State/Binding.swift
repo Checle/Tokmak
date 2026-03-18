@@ -66,7 +66,7 @@ public struct Binding<Value>: DynamicProperty {
 }
 
 public extension Binding {
-  public func transaction(_ transaction: Transaction) -> Binding<Value> {
+  func transaction(_ transaction: Transaction) -> Binding<Value> {
     var result = self
     result.transaction = transaction
     return result

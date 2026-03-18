@@ -24,7 +24,7 @@ struct LVGLWidgetView<Content: View>: _PrimitiveView, AnyLVGLWidget {
     neverBody("LVGLWidgetView")
   }
 
-  public mutating func visitDynamicProperties<V: DynamicPropertyVisitor>(_ visitor: inout V) {}
+  public mutating func visitProperties<V: PropertyVisitor>(_ visitor: inout V) {}
 
   let build: (LVGLRenderer, UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t>
   let content: Content

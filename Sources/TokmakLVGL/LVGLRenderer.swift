@@ -16,7 +16,7 @@ import CLVGL
 import TokmakCore
 
 /// A lean, reflection-free visitor for LVGL.
-struct LVGLVisitor: ReconciliationWalker, AppWalker, DynamicPropertyVisitor {
+struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
   var parent: UnsafeMutablePointer<lv_obj_t>
   let renderer: LVGLRenderer
   
@@ -52,7 +52,7 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, DynamicPropertyVisitor {
     dynamicPropertyIndex = 0
     
     var app = app
-    app.visitDynamicProperties(&self)
+    app.visitProperties(&self)
     
     // Apps are transparent, continue to body
     app.body.walk(&self)
@@ -72,7 +72,7 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, DynamicPropertyVisitor {
     dynamicPropertyIndex = 0
     
     var scene = scene
-    scene.visitDynamicProperties(&self)
+    scene.visitProperties(&self)
     
     // Scenes are transparent, continue to body
     scene.body.walk(&self)
@@ -93,7 +93,7 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, DynamicPropertyVisitor {
     dynamicPropertyIndex = 0
     
     var view = view
-    view.visitDynamicProperties(&self)
+    view.visitProperties(&self)
     
     // If we have a fiber, we can reuse or update its target
     let target: UnsafeMutablePointer<lv_obj_t>

@@ -52,7 +52,7 @@ public protocol App: _TitledApp {
   func walk<V: AppWalker>(_ visitor: inout V)
 
   /// Traverse the dynamic properties of this app.
-  mutating func visitDynamicProperties<V: DynamicPropertyVisitor>(_ visitor: inout V)
+  mutating func visitProperties<V: PropertyVisitor>(_ visitor: inout V)
 }
 
 public extension App {
@@ -61,7 +61,7 @@ public extension App {
     body.walk(&visitor)
   }
 
-  mutating func visitDynamicProperties<V: DynamicPropertyVisitor>(_ visitor: inout V) {}
+  mutating func visitProperties<V: PropertyVisitor>(_ visitor: inout V) {}
 }
 
 public struct _AppConfiguration {

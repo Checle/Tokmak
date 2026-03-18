@@ -28,7 +28,7 @@ public protocol ReconciliationWalker: ViewWalker {
 }
 
 /// A visitor that can traverse the dynamic properties of a `View`.
-public protocol DynamicPropertyVisitor {
+public protocol PropertyVisitor {
   mutating func visit<P: DynamicProperty>(_ property: inout P)
 }
 
@@ -42,7 +42,7 @@ public protocol View {
   func walk<V: ViewWalker>(_ visitor: inout V)
 
   /// Traverse the dynamic properties of this view.
-  mutating func visitDynamicProperties<V: DynamicPropertyVisitor>(_ visitor: inout V)
+  mutating func visitProperties<V: PropertyVisitor>(_ visitor: inout V)
 }
 
 public extension View {
@@ -50,7 +50,7 @@ public extension View {
     body.walk(&visitor)
   }
 
-  mutating func visitDynamicProperties<V: DynamicPropertyVisitor>(_ visitor: inout V) {}
+  mutating func visitProperties<V: PropertyVisitor>(_ visitor: inout V) {}
 }
 
 public extension Never {
