@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import CLVGL
-import Foundation
 import TokmakCore
 
 extension Text: AnyLVGLWidget {

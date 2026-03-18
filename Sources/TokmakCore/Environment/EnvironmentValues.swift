@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import OpenCombineShim
-import CoreGraphics
-
 public struct EnvironmentValues: CustomStringConvertible {
   public var description: String {
     "EnvironmentValues: \(values.count)"
@@ -33,15 +30,6 @@ public struct EnvironmentValues: CustomStringConvertible {
     }
     set {
       values[ObjectIdentifier(key)] = newValue
-    }
-  }
-
-  subscript<B>(bindable: ObjectIdentifier) -> B? where B: ObservableObject {
-    get {
-      values[bindable] as? B
-    }
-    set {
-      values[bindable] = newValue
     }
   }
 

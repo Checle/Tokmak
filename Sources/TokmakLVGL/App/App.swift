@@ -13,26 +13,20 @@
 // limitations under the License.
 
 import CLVGL
-import Dispatch
-import OpenCombineShim
 import TokmakCore
 
 public extension App {
   static func _launch(_ app: Self, with configuration: _AppConfiguration) {
     // Initialize LVGL
     lv_init()
-    
+
     // Create a specialized renderer for Embedded Swift that uses static dispatch.
     let renderer = LVGLRenderer()
-    
+
     // Start the rendering process by traversing the App hierarchy.
     renderer.render(app)
   }
 
   static func _setTitle(_ title: String) {
-  }
-
-  var _colorSchemePublisher: AnyPublisher<ColorScheme, Never> {
-    CurrentValueSubject(.light).eraseToAnyPublisher()
   }
 }

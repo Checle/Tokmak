@@ -15,7 +15,6 @@
 //  Created for LVGL renderer
 
 import CLVGL
-import Foundation
 @_exported import TokmakCore
 
 // MARK: Environment & State
@@ -34,7 +33,6 @@ public typealias ColorScheme = TokmakCore.ColorScheme
 
 public typealias Color = TokmakCore.Color
 public typealias Font = TokmakCore.Font
-public typealias CGFloat = Foundation.CGFloat
 
 // MARK: Views
 

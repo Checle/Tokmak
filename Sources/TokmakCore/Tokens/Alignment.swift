@@ -16,7 +16,6 @@
 //  Created by Carson Katri on 2/18/22.
 //
 
-import Foundation
 
 public protocol AlignmentID {
   static func defaultValue(in context: ViewDimensions) -> CGFloat

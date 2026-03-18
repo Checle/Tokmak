@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import Foundation
-
 public enum Edge: Int8, CaseIterable {
   case top, leading, bottom, trailing
 

@@ -13,8 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import Foundation
-
 /// A protocol for the persistent tree nodes in the static path.
 public protocol AnyFiber: AnyObject {
   var parent: (any AnyFiber)? { get set }

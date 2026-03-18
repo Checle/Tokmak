@@ -15,8 +15,6 @@
 //  Created by Carson Katri on 7/19/20.
 //
 
-import OpenCombineShim
-
 public struct _AnyApp: App {
   var app: Any
   let type: Any.Type
@@ -53,10 +51,5 @@ public struct _AnyApp: App {
 
   public static var _configuration: _AppConfiguration {
     fatalError("`configuration` cannot be set for `AnyApp`. Access underlying `app` value.")
-  }
-
-  @_spi(TokmakCore)
-  public var _colorSchemePublisher: AnyPublisher<ColorScheme, Never> {
-    fatalError("`_AnyApp` cannot monitor colorScheme. Access underlying `app` value.")
   }
 }

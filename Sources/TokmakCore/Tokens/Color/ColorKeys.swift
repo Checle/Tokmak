@@ -15,7 +15,6 @@
 //  Created by Carson Katri on 7/12/21.
 //
 
-import Foundation
 
 struct AccentColorKey: EnvironmentKey {
   static let defaultValue: Color? = nil

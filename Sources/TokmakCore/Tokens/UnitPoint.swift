@@ -15,8 +15,6 @@
 //  Created by Carson Katri on 6/28/20.
 //
 
-import Foundation
-
 public struct UnitPoint: Hashable {
   public var x: CGFloat
   public var y: CGFloat

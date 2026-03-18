@@ -16,8 +16,6 @@
 //  Created by Max Desiatov on 08/04/2020.
 //
 
-import Foundation
-
 /// A view that displays one or more lines of read-only text.
 ///
 /// You can choose a font using the `font(_:)` view modifier.

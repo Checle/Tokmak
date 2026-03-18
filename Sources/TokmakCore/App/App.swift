@@ -16,8 +16,6 @@
 //  Created by Carson Katri on 7/16/20.
 //
 
-import OpenCombineShim
-
 /// Provides the ability to set the title of the Scene.
 public protocol _TitledApp {
   static func _setTitle(_ title: String)
@@ -38,9 +36,6 @@ public protocol App: _TitledApp {
     _ app: Self,
     with configuration: _AppConfiguration
   )
-
-  /// Implemented by the renderer to update the `App` on `ColorScheme` changes
-  var _colorSchemePublisher: AnyPublisher<ColorScheme, Never> { get }
 
   static var _configuration: _AppConfiguration { get }
 

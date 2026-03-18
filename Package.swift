@@ -22,19 +22,11 @@ let package = Package(
     ),
   ],
   dependencies: [
-    .package(
-      url: "https://github.com/OpenCombine/OpenCombine.git",
-      from: "0.12.0"
-    ),
   ],
   targets: [
     .target(
       name: "TokmakCore",
       dependencies: [
-        .product(
-          name: "OpenCombineShim",
-          package: "OpenCombine"
-        ),
       ]
     ),
     .target(
@@ -53,10 +45,6 @@ let package = Package(
       name: "TokmakLVGL",
       dependencies: [
         "TokmakCore", "CLVGL",
-        .product(
-          name: "OpenCombineShim",
-          package: "OpenCombine"
-        ),
       ]
     ),
   ]

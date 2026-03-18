@@ -15,7 +15,6 @@
 //  Created by Carson Katri on 7/13/20.
 //
 
-import Foundation
 
 public struct GridItem {
   public enum Size {
