@@ -31,7 +31,7 @@ protocol ForEachProtocol: GroupView {
 ///         Text("\($0)")
 ///       }
 ///     }
-public struct ForEach<Data, ID, Content>: _PrimitiveView where Data: RandomAccessCollection,
+public struct ForEach<Data, ID, Content>: _PrimitiveView, StaticView where Data: RandomAccessCollection,
   ID: Hashable,
   Content: View
 {
@@ -52,6 +52,17 @@ public struct ForEach<Data, ID, Content>: _PrimitiveView where Data: RandomAcces
   public func _visitChildren<V>(_ visitor: V) where V: ViewVisitor {
     for element in data {
       visitor.visit(content(element))
+    }
+  }
+
+  public func walk<V: StaticVisitor>(_ visitor: inout V) {
+    for element in data {
+      let view = content(element)
+      if let staticView = view as? any StaticView {
+        staticView.walk(&visitor)
+      } else {
+        visitor.visit(view)
+      }
     }
   }
 }

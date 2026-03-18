@@ -21,10 +21,19 @@ import Foundation
 ///       Text("Top")
 ///     }
 ///
-public struct ZStack<Content>: _PrimitiveView where Content: View {
+public struct ZStack<Content>: _PrimitiveView, StaticPrimitiveView where Content: View {
   public let alignment: Alignment
   public let spacing: CGFloat?
   public let content: Content
+
+  public func walk<V: StaticVisitor>(_ visitor: inout V) {
+    visitor.visit(self)
+    if let staticContent = content as? any StaticView {
+      staticContent.walk(&visitor)
+    } else {
+      visitor.visit(content)
+    }
+  }
 
   public init(
     alignment: Alignment = .center,

@@ -35,13 +35,21 @@
 ///     var body: some View {
 ///       Button("\(counter)", action: { counter += 1 })
 ///     }
-public struct Button<Label>: View where Label: View {
+public struct Button<Label>: View, StaticView where Label: View {
   let label: Label
   let action: () -> ()
   let role: ButtonRole?
 
   @Environment(\.buttonStyle)
   var buttonStyle
+
+  public func walk<V: StaticVisitor>(_ visitor: inout V) {
+    if let staticBody = body as? any StaticView {
+      staticBody.walk(&visitor)
+    } else {
+      visitor.visit(body)
+    }
+  }
 
   public init(action: @escaping () -> (), @ViewBuilder label: () -> Label) {
     self.init(role: nil, action: action, label: label)
@@ -66,7 +74,7 @@ public struct Button<Label>: View where Label: View {
   }
 }
 
-public struct _PrimitiveButtonStyleBody<Label>: View where Label: View {
+public struct _PrimitiveButtonStyleBody<Label>: View, StaticPrimitiveView where Label: View {
   public let label: Label
   public let role: ButtonRole?
   public let action: () -> ()
@@ -90,6 +98,15 @@ public struct _PrimitiveButtonStyleBody<Label>: View where Label: View {
 
   public var body: Never {
     neverBody("_PrimitiveButtonStyleBody")
+  }
+
+  public func walk<V: StaticVisitor>(_ visitor: inout V) {
+    visitor.visit(self)
+    if let staticLabel = label as? any StaticView {
+      staticLabel.walk(&visitor)
+    } else {
+      visitor.visit(label)
+    }
   }
 
   public func _visitChildren<V>(_ visitor: V) where V: ViewVisitor {

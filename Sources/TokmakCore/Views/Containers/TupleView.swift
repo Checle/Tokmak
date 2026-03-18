@@ -18,11 +18,80 @@
 /// A `View` created from a `Tuple` of `View` values.
 ///
 /// Mainly for use with `@ViewBuilder`.
-public struct TupleView<T>: _PrimitiveView {
+public struct TupleView<T>: _PrimitiveView, StaticView {
   public let value: T
 
   let _children: [AnyView]
   private let visit: (ViewVisitor) -> ()
+
+  public func walk<V: StaticVisitor>(_ visitor: inout V) {
+    if let v = value as? (any View, any View) {
+      staticWalkAny(v.0, &visitor)
+      staticWalkAny(v.1, &visitor)
+    } else if let v = value as? (any View, any View, any View) {
+      staticWalkAny(v.0, &visitor)
+      staticWalkAny(v.1, &visitor)
+      staticWalkAny(v.2, &visitor)
+    } else if let v = value as? (any View, any View, any View, any View) {
+      staticWalkAny(v.0, &visitor)
+      staticWalkAny(v.1, &visitor)
+      staticWalkAny(v.2, &visitor)
+      staticWalkAny(v.3, &visitor)
+    } else if let v = value as? (any View, any View, any View, any View, any View) {
+      staticWalkAny(v.0, &visitor)
+      staticWalkAny(v.1, &visitor)
+      staticWalkAny(v.2, &visitor)
+      staticWalkAny(v.3, &visitor)
+      staticWalkAny(v.4, &visitor)
+    } else if let v = value as? (any View, any View, any View, any View, any View, any View) {
+      staticWalkAny(v.0, &visitor)
+      staticWalkAny(v.1, &visitor)
+      staticWalkAny(v.2, &visitor)
+      staticWalkAny(v.3, &visitor)
+      staticWalkAny(v.4, &visitor)
+      staticWalkAny(v.5, &visitor)
+    } else if let v = value as? (any View, any View, any View, any View, any View, any View, any View) {
+      staticWalkAny(v.0, &visitor)
+      staticWalkAny(v.1, &visitor)
+      staticWalkAny(v.2, &visitor)
+      staticWalkAny(v.3, &visitor)
+      staticWalkAny(v.4, &visitor)
+      staticWalkAny(v.5, &visitor)
+      staticWalkAny(v.6, &visitor)
+    } else if let v = value as? (any View, any View, any View, any View, any View, any View, any View, any View) {
+      staticWalkAny(v.0, &visitor)
+      staticWalkAny(v.1, &visitor)
+      staticWalkAny(v.2, &visitor)
+      staticWalkAny(v.3, &visitor)
+      staticWalkAny(v.4, &visitor)
+      staticWalkAny(v.5, &visitor)
+      staticWalkAny(v.6, &visitor)
+      staticWalkAny(v.7, &visitor)
+    } else if let v = value as? (any View, any View, any View, any View, any View, any View, any View, any View, any View) {
+      staticWalkAny(v.0, &visitor)
+      staticWalkAny(v.1, &visitor)
+      staticWalkAny(v.2, &visitor)
+      staticWalkAny(v.3, &visitor)
+      staticWalkAny(v.4, &visitor)
+      staticWalkAny(v.5, &visitor)
+      staticWalkAny(v.6, &visitor)
+      staticWalkAny(v.7, &visitor)
+      staticWalkAny(v.8, &visitor)
+    } else if let v = value as? (any View, any View, any View, any View, any View, any View, any View, any View, any View, any View) {
+      staticWalkAny(v.0, &visitor)
+      staticWalkAny(v.1, &visitor)
+      staticWalkAny(v.2, &visitor)
+      staticWalkAny(v.3, &visitor)
+      staticWalkAny(v.4, &visitor)
+      staticWalkAny(v.5, &visitor)
+      staticWalkAny(v.6, &visitor)
+      staticWalkAny(v.7, &visitor)
+      staticWalkAny(v.8, &visitor)
+      staticWalkAny(v.9, &visitor)
+    } else if let v = value as? any View {
+      staticWalkAny(v, &visitor)
+    }
+  }
 
   public init(_ value: T) {
     self.value = value
@@ -267,4 +336,12 @@ public struct TupleView<T>: _PrimitiveView {
 
 extension TupleView: GroupView {
   public var children: [AnyView] { _children }
+}
+
+func staticWalkAny<V: StaticVisitor>(_ view: Any, _ visitor: inout V) {
+  if let staticView = view as? any StaticView {
+    staticView.walk(&visitor)
+  } else if let view = view as? any View {
+    visitor.visit(view)
+  }
 }

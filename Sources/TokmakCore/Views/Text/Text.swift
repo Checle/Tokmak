@@ -31,7 +31,7 @@ import Foundation
 ///       .bold()
 ///       .italic()
 ///       .underline(true, color: .red)
-public struct Text: _PrimitiveView, Equatable {
+public struct Text: _PrimitiveView, Equatable, StaticPrimitiveView {
   let storage: _Storage
   let modifiers: [_Modifier]
 

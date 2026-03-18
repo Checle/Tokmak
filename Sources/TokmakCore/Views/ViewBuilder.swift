@@ -16,13 +16,13 @@
 //
 
 /// A `View` with no effect on rendering.
-public struct EmptyView: _PrimitiveView {
+public struct EmptyView: _PrimitiveView, StaticPrimitiveView {
   @inlinable
   public init() {}
 }
 
 // swiftlint:disable:next type_name
-public struct _ConditionalContent<TrueContent, FalseContent>: _PrimitiveView
+public struct _ConditionalContent<TrueContent, FalseContent>: _PrimitiveView, StaticView
   where TrueContent: View, FalseContent: View
 {
   enum Storage {
@@ -38,6 +38,23 @@ public struct _ConditionalContent<TrueContent, FalseContent>: _PrimitiveView
       visitor.visit(view)
     case let .falseContent(view):
       visitor.visit(view)
+    }
+  }
+
+  public func walk<V: StaticVisitor>(_ visitor: inout V) {
+    switch storage {
+    case let .trueContent(view):
+      if let staticView = view as? any StaticView {
+        staticView.walk(&visitor)
+      } else {
+        visitor.visit(view)
+      }
+    case let .falseContent(view):
+      if let staticView = view as? any StaticView {
+        staticView.walk(&visitor)
+      } else {
+        visitor.visit(view)
+      }
     }
   }
 }

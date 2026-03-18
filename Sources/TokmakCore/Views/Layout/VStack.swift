@@ -20,13 +20,22 @@ import Foundation
 ///       Text("Hello")
 ///       Text("World")
 ///     }
-public struct VStack<Content>: View where Content: View {
+public struct VStack<Content>: View, StaticPrimitiveView where Content: View {
   public let alignment: HorizontalAlignment
 
   @_spi(TokmakCore)
   public let spacing: CGFloat?
 
   public let content: Content
+
+  public func walk<V: StaticVisitor>(_ visitor: inout V) {
+    visitor.visit(self)
+    if let staticContent = content as? any StaticView {
+      staticContent.walk(&visitor)
+    } else {
+      visitor.visit(content)
+    }
+  }
 
   public init(
     alignment: HorizontalAlignment = .center,

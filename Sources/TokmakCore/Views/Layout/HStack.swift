@@ -25,13 +25,22 @@ public let defaultStackSpacing: CGFloat = 8
 ///       Text("Hello")
 ///       Text("World")
 ///     }
-public struct HStack<Content>: View where Content: View {
+public struct HStack<Content>: View, StaticPrimitiveView where Content: View {
   public let alignment: VerticalAlignment
 
   @_spi(TokmakCore)
   public let spacing: CGFloat?
 
   public let content: Content
+
+  public func walk<V: StaticVisitor>(_ visitor: inout V) {
+    visitor.visit(self)
+    if let staticContent = content as? any StaticView {
+      staticContent.walk(&visitor)
+    } else {
+      visitor.visit(content)
+    }
+  }
 
   public init(
     alignment: VerticalAlignment = .center,
