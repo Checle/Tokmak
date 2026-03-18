@@ -1,4 +1,5 @@
 // Copyright 2020 Tokamak contributors
+// Copyright 2026 Checle LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,78 +19,78 @@
 /// A `View` created from a `Tuple` of `View` values.
 ///
 /// Mainly for use with `@ViewBuilder`.
-public struct TupleView<T>: _PrimitiveView, StaticView {
+public struct TupleView<T>: _PrimitiveView, View {
   public let value: T
 
   let _children: [AnyView]
   private let visit: (ViewVisitor) -> ()
 
-  public func walk<V: StaticVisitor>(_ visitor: inout V) {
+  public func walk<V: ViewWalker>(_ visitor: inout V) {
     if let v = value as? (any View, any View) {
-      staticWalkAny(v.0, &visitor)
-      staticWalkAny(v.1, &visitor)
+      walkAny(v.0, &visitor)
+      walkAny(v.1, &visitor)
     } else if let v = value as? (any View, any View, any View) {
-      staticWalkAny(v.0, &visitor)
-      staticWalkAny(v.1, &visitor)
-      staticWalkAny(v.2, &visitor)
+      walkAny(v.0, &visitor)
+      walkAny(v.1, &visitor)
+      walkAny(v.2, &visitor)
     } else if let v = value as? (any View, any View, any View, any View) {
-      staticWalkAny(v.0, &visitor)
-      staticWalkAny(v.1, &visitor)
-      staticWalkAny(v.2, &visitor)
-      staticWalkAny(v.3, &visitor)
+      walkAny(v.0, &visitor)
+      walkAny(v.1, &visitor)
+      walkAny(v.2, &visitor)
+      walkAny(v.3, &visitor)
     } else if let v = value as? (any View, any View, any View, any View, any View) {
-      staticWalkAny(v.0, &visitor)
-      staticWalkAny(v.1, &visitor)
-      staticWalkAny(v.2, &visitor)
-      staticWalkAny(v.3, &visitor)
-      staticWalkAny(v.4, &visitor)
+      walkAny(v.0, &visitor)
+      walkAny(v.1, &visitor)
+      walkAny(v.2, &visitor)
+      walkAny(v.3, &visitor)
+      walkAny(v.4, &visitor)
     } else if let v = value as? (any View, any View, any View, any View, any View, any View) {
-      staticWalkAny(v.0, &visitor)
-      staticWalkAny(v.1, &visitor)
-      staticWalkAny(v.2, &visitor)
-      staticWalkAny(v.3, &visitor)
-      staticWalkAny(v.4, &visitor)
-      staticWalkAny(v.5, &visitor)
+      walkAny(v.0, &visitor)
+      walkAny(v.1, &visitor)
+      walkAny(v.2, &visitor)
+      walkAny(v.3, &visitor)
+      walkAny(v.4, &visitor)
+      walkAny(v.5, &visitor)
     } else if let v = value as? (any View, any View, any View, any View, any View, any View, any View) {
-      staticWalkAny(v.0, &visitor)
-      staticWalkAny(v.1, &visitor)
-      staticWalkAny(v.2, &visitor)
-      staticWalkAny(v.3, &visitor)
-      staticWalkAny(v.4, &visitor)
-      staticWalkAny(v.5, &visitor)
-      staticWalkAny(v.6, &visitor)
+      walkAny(v.0, &visitor)
+      walkAny(v.1, &visitor)
+      walkAny(v.2, &visitor)
+      walkAny(v.3, &visitor)
+      walkAny(v.4, &visitor)
+      walkAny(v.5, &visitor)
+      walkAny(v.6, &visitor)
     } else if let v = value as? (any View, any View, any View, any View, any View, any View, any View, any View) {
-      staticWalkAny(v.0, &visitor)
-      staticWalkAny(v.1, &visitor)
-      staticWalkAny(v.2, &visitor)
-      staticWalkAny(v.3, &visitor)
-      staticWalkAny(v.4, &visitor)
-      staticWalkAny(v.5, &visitor)
-      staticWalkAny(v.6, &visitor)
-      staticWalkAny(v.7, &visitor)
+      walkAny(v.0, &visitor)
+      walkAny(v.1, &visitor)
+      walkAny(v.2, &visitor)
+      walkAny(v.3, &visitor)
+      walkAny(v.4, &visitor)
+      walkAny(v.5, &visitor)
+      walkAny(v.6, &visitor)
+      walkAny(v.7, &visitor)
     } else if let v = value as? (any View, any View, any View, any View, any View, any View, any View, any View, any View) {
-      staticWalkAny(v.0, &visitor)
-      staticWalkAny(v.1, &visitor)
-      staticWalkAny(v.2, &visitor)
-      staticWalkAny(v.3, &visitor)
-      staticWalkAny(v.4, &visitor)
-      staticWalkAny(v.5, &visitor)
-      staticWalkAny(v.6, &visitor)
-      staticWalkAny(v.7, &visitor)
-      staticWalkAny(v.8, &visitor)
+      walkAny(v.0, &visitor)
+      walkAny(v.1, &visitor)
+      walkAny(v.2, &visitor)
+      walkAny(v.3, &visitor)
+      walkAny(v.4, &visitor)
+      walkAny(v.5, &visitor)
+      walkAny(v.6, &visitor)
+      walkAny(v.7, &visitor)
+      walkAny(v.8, &visitor)
     } else if let v = value as? (any View, any View, any View, any View, any View, any View, any View, any View, any View, any View) {
-      staticWalkAny(v.0, &visitor)
-      staticWalkAny(v.1, &visitor)
-      staticWalkAny(v.2, &visitor)
-      staticWalkAny(v.3, &visitor)
-      staticWalkAny(v.4, &visitor)
-      staticWalkAny(v.5, &visitor)
-      staticWalkAny(v.6, &visitor)
-      staticWalkAny(v.7, &visitor)
-      staticWalkAny(v.8, &visitor)
-      staticWalkAny(v.9, &visitor)
+      walkAny(v.0, &visitor)
+      walkAny(v.1, &visitor)
+      walkAny(v.2, &visitor)
+      walkAny(v.3, &visitor)
+      walkAny(v.4, &visitor)
+      walkAny(v.5, &visitor)
+      walkAny(v.6, &visitor)
+      walkAny(v.7, &visitor)
+      walkAny(v.8, &visitor)
+      walkAny(v.9, &visitor)
     } else if let v = value as? any View {
-      staticWalkAny(v, &visitor)
+      walkAny(v, &visitor)
     }
   }
 
@@ -338,10 +339,8 @@ extension TupleView: GroupView {
   public var children: [AnyView] { _children }
 }
 
-func staticWalkAny<V: StaticVisitor>(_ view: Any, _ visitor: inout V) {
-  if let staticView = view as? any StaticView {
-    staticView.walk(&visitor)
-  } else if let view = view as? any View {
-    visitor.visit(view)
+func walkAny<V: ViewWalker>(_ view: Any, _ visitor: inout V) {
+  if let view = view as? any View {
+    view.walk(&visitor)
   }
 }

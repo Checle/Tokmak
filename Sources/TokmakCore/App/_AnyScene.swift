@@ -24,13 +24,6 @@ public struct _AnyScene: Scene {
     case view(AnyView)
   }
 
-  /** The name of the unapplied generic type of the underlying `view`. `Button<Text>` and
-   `Button<Image>` types are different, but when reconciling the tree of mounted views
-   they are treated the same, thus the `Button` part of the type (the type constructor)
-   is stored in this property.
-   */
-  let typeConstructorName: String
-
   /// The actual `Scene` value wrapped within this `_AnyScene`.
   var scene: Any
 
@@ -61,8 +54,6 @@ public struct _AnyScene: Scene {
         // swiftlint:disable:next force_cast
         bodyClosure = { .scene(_AnyScene(($0 as! S).body)) }
       }
-
-      typeConstructorName = TokmakCore.typeConstructorName(type)
     }
   }
 

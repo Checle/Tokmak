@@ -13,107 +13,134 @@
 // limitations under the License.
 
 import CLVGL
-import Dispatch
-import Foundation
-@_spi(TokmakCore) import TokmakCore
+import TokmakCore
 
-extension EnvironmentValues {
-  /// Returns default settings for the LVGL environment
-  static var defaultEnvironment: Self {
-    var environment = EnvironmentValues()
-    environment.colorScheme = .light
-    return environment
+/// A lean, reflection-free visitor for LVGL.
+struct LVGLVisitor: ReconciliationWalker, AppWalker {
+  var parent: UnsafeMutablePointer<lv_obj_t>
+  let renderer: LVGLRenderer
+  
+  var currentFiber: (any AnyFiber)?
+  var childIndex: Int = 0
+  
+  init(parent: UnsafeMutablePointer<lv_obj_t>, renderer: LVGLRenderer, rootFiber: (any AnyFiber)?) {
+    self.parent = parent
+    self.renderer = renderer
+    self.currentFiber = rootFiber
+  }
+
+  mutating func visit<A: App>(_ app: A) {
+    let originalFiber = currentFiber
+    let originalIndex = childIndex
+    
+    currentFiber = currentFiber?.makeChild(A.self, at: childIndex)
+    childIndex = 0
+    
+    // Apps are transparent, continue to body
+    app.body.walk(&self)
+    
+    currentFiber = originalFiber
+    childIndex = originalIndex + 1
+  }
+
+  mutating func visit<S: Scene>(_ scene: S) {
+    let originalFiber = currentFiber
+    let originalIndex = childIndex
+    
+    currentFiber = currentFiber?.makeChild(S.self, at: childIndex)
+    childIndex = 0
+    
+    // Scenes are transparent, continue to body
+    scene.body.walk(&self)
+    
+    currentFiber = originalFiber
+    childIndex = originalIndex + 1
+  }
+
+  mutating func visit<V: View>(_ view: V) {
+    let originalFiber = currentFiber
+    let originalIndex = childIndex
+    
+    let fiber = currentFiber?.makeChild(V.self, at: childIndex)
+    currentFiber = fiber
+    childIndex = 0
+    
+    // If we have a fiber, we can reuse or update its target
+    let target: UnsafeMutablePointer<lv_obj_t>
+    
+    if let existingTarget = fiber?.target {
+      target = existingTarget.assumingMemoryBound(to: lv_obj_t.self)
+      
+      // Update logic based on type
+      if let text = view as? Text {
+        let proxy = _TextProxy(text)
+        proxy.rawText.withCString { lv_label_set_text(target, $0) }
+      }
+      // ... more update logic
+    } else {
+      // Create new target
+      if let text = view as? Text {
+        let label = lv_label_create(parent)!
+        let proxy = _TextProxy(text)
+        proxy.rawText.withCString { lv_label_set_text(label, $0) }
+        target = label
+      } else if let widget = view as? any AnyLVGLWidget {
+        target = widget.new(renderer, parent)
+      } else {
+        // Fallback for non-primitives that are visited
+        target = parent
+      }
+      
+      // Store in fiber if we have one
+      fiber?.target = UnsafeMutableRawPointer(target)
+    }
+
+    // Primitive views don't have bodies to walk, they manage their own children.
+    // Non-primitives walk their body.
+    if !(view is any _PrimitiveView) {
+      let originalParent = parent
+      parent = target
+      view.body.walk(&self)
+      parent = originalParent
+    }
+    
+    currentFiber = originalFiber
+    childIndex = originalIndex + 1
   }
 }
 
-final class LVGLRenderer: Renderer {
-  private(set) var reconciler: StackReconciler<LVGLRenderer>?
+/// A specialized renderer for Embedded Swift that uses static dispatch.
+final class LVGLRenderer {
+  static var shared: LVGLRenderer?
+  
   let screen: UnsafeMutablePointer<lv_obj_t>
-
-  init<A: App>(
-    _ app: A,
-    _ rootEnvironment: EnvironmentValues? = nil
-  ) {
-    // Initialize LVGL display driver
-    // This assumes LVGL has been initialized at the C level
-    screen = lv_scr_act()
-
-    self.reconciler = StackReconciler(
-      app: app,
-      target: LVGLWidget(app, screen: screen),
-      environment: .defaultEnvironment.merging(rootEnvironment),
-      renderer: self,
-      scheduler: { next in
-        DispatchQueue.main.async {
-          next()
-          lv_refr_now(nil)
-        }
-      }
-    )
+  
+  private var rootFiber: (any AnyFiber)?
+  private var rootApp: (any App)?
+  
+  init() {
+    self.screen = lv_scr_act()
+    Self.shared = self
   }
-
-  public func mountTarget(
-    before sibling: LVGLWidget?,
-    to parent: LVGLWidget,
-    with host: MountedHost
-  ) -> LVGLWidget? {
-    guard let anyWidget = mapAnyView(
-      host.view,
-      transform: { (widget: AnyLVGLWidget) in widget }
-    ) else {
-      // handle cases like `TupleView`
-      if mapAnyView(host.view, transform: { (view: ParentView) in view }) != nil {
-        return parent
-      }
-
-      return nil
+  
+  func render<A: App>(_ app: A) {
+    self.rootApp = app
+    if rootFiber == nil {
+      rootFiber = Fiber<A>()
     }
-
-    let widget = anyWidget.new(self, parent.storage.obj)
-
-    // sibling is handled by LVGL default order or we could use lv_obj_move_before
-    if let siblingObj = sibling?.storage.obj {
-      lv_obj_move_to_index(widget, Int32(lv_obj_get_index(siblingObj)))
-    }
-
-    return LVGLWidget(host.view, widget)
+    
+    var visitor = LVGLVisitor(parent: screen, renderer: self, rootFiber: rootFiber)
+    app.walk(&visitor)
   }
 
-  func update(target: LVGLWidget, with host: MountedHost) {
-    guard let widget = mapAnyView(host.view, transform: { (widget: AnyLVGLWidget) in widget })
-    else { return }
-
-    widget.update(widget: target)
-  }
-
-  func unmount(
-    target: LVGLWidget,
-    from parent: LVGLWidget,
-    with task: UnmountHostTask<LVGLRenderer>
-  ) {
-    defer { task.finish() }
-
-    guard mapAnyView(task.host.view, transform: { (widget: AnyLVGLWidget) in widget }) != nil
-    else { return }
-
-    // Delete the widget from LVGL
-    if case let .widget(widget) = target.storage {
-      lv_obj_del(widget)
-    }
-  }
-
-  public func isPrimitiveView(_ type: Any.Type) -> Bool {
-    type is AnyLVGLWidget.Type || type is (any _PrimitiveView).Type
-  }
-
-  public func primitiveBody(for view: Any) -> AnyView? {
-    if let primitive = view as? LVGLPrimitive {
-      return primitive.renderedBody
-    }
-    return nil
+  func requestRedraw() {
+    guard let rootApp = rootApp else { return }
+    var visitor = LVGLVisitor(parent: screen, renderer: self, rootFiber: rootFiber)
+    rootApp.walk(&visitor)
+    lv_refr_now(nil)
   }
 }
 
-protocol LVGLPrimitive {
-  var renderedBody: AnyView { get }
+private struct EmptyApp: App {
+    var body: some Scene { WindowGroup { EmptyView() } }
 }

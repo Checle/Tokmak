@@ -1,4 +1,5 @@
 // Copyright 2020 Tokamak contributors
+// Copyright 2026 Checle LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,28 +16,26 @@
 //  Created by Carson Katri on 7/16/20.
 //
 
+/// A visitor that can traverse a `Scene` tree.
+public protocol SceneWalker {
+  mutating func visit<S: Scene>(_ scene: S)
+  mutating func visit<V: View>(_ view: V)
+}
+
 public protocol Scene {
   associatedtype Body: Scene
 
-  // FIXME: If I put `@SceneBuilder` in front of this
-  // it fails to build with no useful error message.
   var body: Self.Body { get }
 
-  /// Override the default implementation for `Scene`s with body types of `Never`
-  /// or in cases where the body would normally need to be type erased.
-  ///
-  /// You can `visit(_:)` either another `Scene` or a `View` with a `SceneVisitor`
-  func _visitChildren<V: SceneVisitor>(_ visitor: V)
-
-  /// Create `SceneOutputs`, including any modifications to the environment, preferences, or a custom
-  /// `LayoutComputer` from the `SceneInputs`.
-  ///
-  /// > At the moment, `SceneInputs`/`SceneOutputs` are identical to `ViewInputs`/`ViewOutputs`.
-  static func _makeScene(_ inputs: SceneInputs<Self>) -> SceneOutputs
+  /// Traverse the scene tree statically.
+  func walk<V: SceneWalker>(_ visitor: inout V)
 }
 
-public typealias SceneInputs<S: Scene> = ViewInputs<S>
-public typealias SceneOutputs = ViewOutputs
+public extension Scene {
+  func walk<V: SceneWalker>(_ visitor: inout V) {
+    body.walk(&visitor)
+  }
+}
 
 protocol TitledScene {
   var title: Text? { get }
@@ -52,7 +51,9 @@ public protocol SceneDeferredToRenderer {
   var deferredBody: AnyView { get }
 }
 
-extension Never: Scene {}
+extension Never: Scene {
+  public func walk<V: SceneWalker>(_ visitor: inout V) {}
+}
 
 /// Calls `fatalError` with an explanation that a given `type` is a primitive `Scene`
 public func neverScene(_ type: String) -> Never {

@@ -28,13 +28,4 @@ extension Text: AnyLVGLWidget {
     
     return label
   }
-
-  func update(widget: LVGLWidget) {
-    if case let .widget(w) = widget.storage {
-      let text = _TextProxy(self).rawText
-      text.withCString { cString in
-        lv_label_set_text(w, cString)
-      }
-    }
-  }
 }

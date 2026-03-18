@@ -1,4 +1,5 @@
 // Copyright 2018-2020 Tokamak contributors
+// Copyright 2026 Checle LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,7 +36,7 @@
 ///     var body: some View {
 ///       Button("\(counter)", action: { counter += 1 })
 ///     }
-public struct Button<Label>: View, StaticView where Label: View {
+public struct Button<Label>: View where Label: View {
   let label: Label
   let action: () -> ()
   let role: ButtonRole?
@@ -43,12 +44,8 @@ public struct Button<Label>: View, StaticView where Label: View {
   @Environment(\.buttonStyle)
   var buttonStyle
 
-  public func walk<V: StaticVisitor>(_ visitor: inout V) {
-    if let staticBody = body as? any StaticView {
-      staticBody.walk(&visitor)
-    } else {
-      visitor.visit(body)
-    }
+  public func walk<V: ViewWalker>(_ visitor: inout V) {
+    body.walk(&visitor)
   }
 
   public init(action: @escaping () -> (), @ViewBuilder label: () -> Label) {
@@ -74,7 +71,7 @@ public struct Button<Label>: View, StaticView where Label: View {
   }
 }
 
-public struct _PrimitiveButtonStyleBody<Label>: View, StaticPrimitiveView where Label: View {
+public struct _PrimitiveButtonStyleBody<Label>: View, _PrimitiveView where Label: View {
   public let label: Label
   public let role: ButtonRole?
   public let action: () -> ()
@@ -100,17 +97,9 @@ public struct _PrimitiveButtonStyleBody<Label>: View, StaticPrimitiveView where 
     neverBody("_PrimitiveButtonStyleBody")
   }
 
-  public func walk<V: StaticVisitor>(_ visitor: inout V) {
+  public func walk<V: ViewWalker>(_ visitor: inout V) {
     visitor.visit(self)
-    if let staticLabel = label as? any StaticView {
-      staticLabel.walk(&visitor)
-    } else {
-      visitor.visit(label)
-    }
-  }
-
-  public func _visitChildren<V>(_ visitor: V) where V: ViewVisitor {
-    visitor.visit(label)
+    label.walk(&visitor)
   }
 }
 
@@ -166,5 +155,11 @@ public extension Button where Label == Text {
     label = Text(title)
     self.action = action
     self.role = role
+  }
+}
+
+public extension Button {
+  static func _concatenating(lhs: Self, rhs: Self) -> Self {
+    fatalError("Button concatenation is not supported")
   }
 }

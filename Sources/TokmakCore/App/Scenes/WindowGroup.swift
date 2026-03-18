@@ -1,4 +1,5 @@
 // Copyright 2020 Tokamak contributors
+// Copyright 2026 Checle LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -68,15 +69,8 @@ public struct WindowGroup<Content>: Scene, TitledScene where Content: View {
     neverScene("WindowGroup")
   }
 
-  // TODO: Implement LocalizedStringKey
-//  public init(_ titleKey: LocalizedStringKey,
-//              id: String,
-//              @ViewBuilder content: () -> Content)
-//  public init(_ titleKey: LocalizedStringKey,
-//              @ViewBuilder content: () -> Content) {
-//  }
-
-  public func _visitChildren<V>(_ visitor: V) where V: SceneVisitor {
-    visitor.visit(content)
+  public func walk<V: SceneWalker>(_ visitor: inout V) {
+    visitor.visit(self)
+    content.walk(&visitor)
   }
 }

@@ -1,4 +1,5 @@
 // Copyright 2020-2021 Tokamak contributors
+// Copyright 2026 Checle LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,7 +32,7 @@ import Foundation
 ///       .bold()
 ///       .italic()
 ///       .underline(true, color: .red)
-public struct Text: _PrimitiveView, Equatable, StaticPrimitiveView {
+public struct Text: _PrimitiveView, Equatable, _PrimitiveView {
   let storage: _Storage
   let modifiers: [_Modifier]
 

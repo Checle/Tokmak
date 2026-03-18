@@ -51,20 +51,6 @@ extension _PrimitiveButtonStyleBody: AnyLVGLWidget {
     
     return button
   }
-
-  func update(widget: LVGLWidget) {
-    if case let .widget(w) = widget.storage {
-      // Re-set action
-      if let oldPointer = lv_obj_get_user_data(w) {
-         Unmanaged<ActionBox>.fromOpaque(oldPointer).release()
-      }
-      
-      let action = self.action
-      let box = ActionBox(action: action)
-      let pointer = Unmanaged.passRetained(box).toOpaque()
-      lv_obj_set_user_data(w, pointer)
-    }
-  }
 }
 
 private final class ActionBox {

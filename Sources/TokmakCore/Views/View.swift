@@ -1,4 +1,5 @@
 // Copyright 2020 Tokamak contributors
+// Copyright 2026 Checle LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,19 +16,31 @@
 //  Created by Max Desiatov on 07/04/2020.
 //
 
+/// A visitor that can traverse a `View` tree without type erasure or reflection.
+/// Renderers implement this to handle primitive views.
+public protocol ViewWalker {
+  mutating func visit<V: View>(_ view: V)
+}
+
+/// A visitor that supports reconciliation by tracking current fibers.
+public protocol ReconciliationWalker: ViewWalker {
+  var currentFiber: (any AnyFiber)? { get set }
+}
+
 public protocol View {
   associatedtype Body: View
 
   @ViewBuilder
   var body: Self.Body { get }
 
-  /// Override the default implementation for `View`s with body types of `Never`
-  /// or in cases where the body would normally need to be type erased.
-  func _visitChildren<V: ViewVisitor>(_ visitor: V)
+  /// Traverse the view tree statically.
+  func walk<V: ViewWalker>(_ visitor: inout V)
+}
 
-  /// Create `ViewOutputs`, including any modifications to the environment, preferences, or a custom
-  /// `LayoutComputer` from the `ViewInputs`.
-  static func _makeView(_ inputs: ViewInputs<Self>) -> ViewOutputs
+public extension View {
+  func walk<V: ViewWalker>(_ visitor: inout V) {
+    body.walk(&visitor)
+  }
 }
 
 public extension Never {
@@ -37,7 +50,9 @@ public extension Never {
   }
 }
 
-extension Never: View {}
+extension Never: View {
+  public func walk<V: ViewWalker>(_ visitor: inout V) {}
+}
 
 /// A `View` that offers primitive functionality, which renders its `body` inaccessible.
 public protocol _PrimitiveView: View where Body == Never {}
@@ -48,8 +63,13 @@ public extension _PrimitiveView {
     neverBody(String(reflecting: Self.self))
   }
 
-  func _visitChildren<V>(_ visitor: V) where V: ViewVisitor {}
+  func walk<V: ViewWalker>(_ visitor: inout V) {
+    visitor.visit(self)
+  }
 }
+
+/// A marker for views that are terminal primitives in a specific renderer.
+public typealias PrimitiveView = _PrimitiveView
 
 /// A `View` type that renders with subviews, usually specified in the `Content` type argument
 public protocol ParentView {

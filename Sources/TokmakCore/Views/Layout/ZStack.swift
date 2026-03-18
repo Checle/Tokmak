@@ -1,4 +1,5 @@
 // Copyright 2020-2021 Tokamak contributors
+// Copyright 2026 Checle LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,18 +22,14 @@ import Foundation
 ///       Text("Top")
 ///     }
 ///
-public struct ZStack<Content>: _PrimitiveView, StaticPrimitiveView where Content: View {
+public struct ZStack<Content>: _PrimitiveView where Content: View {
   public let alignment: Alignment
   public let spacing: CGFloat?
   public let content: Content
 
-  public func walk<V: StaticVisitor>(_ visitor: inout V) {
+  public func walk<V: ViewWalker>(_ visitor: inout V) {
     visitor.visit(self)
-    if let staticContent = content as? any StaticView {
-      staticContent.walk(&visitor)
-    } else {
-      visitor.visit(content)
-    }
+    content.walk(&visitor)
   }
 
   public init(

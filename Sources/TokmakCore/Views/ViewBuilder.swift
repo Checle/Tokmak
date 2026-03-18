@@ -1,4 +1,5 @@
 // Copyright 2020 Tokamak contributors
+// Copyright 2026 Checle LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,13 +17,13 @@
 //
 
 /// A `View` with no effect on rendering.
-public struct EmptyView: _PrimitiveView, StaticPrimitiveView {
+public struct EmptyView: _PrimitiveView {
   @inlinable
   public init() {}
 }
 
 // swiftlint:disable:next type_name
-public struct _ConditionalContent<TrueContent, FalseContent>: _PrimitiveView, StaticView
+public struct _ConditionalContent<TrueContent, FalseContent>: _PrimitiveView, View
   where TrueContent: View, FalseContent: View
 {
   enum Storage {
@@ -32,29 +33,12 @@ public struct _ConditionalContent<TrueContent, FalseContent>: _PrimitiveView, St
 
   let storage: Storage
 
-  public func _visitChildren<V>(_ visitor: V) where V: ViewVisitor {
+  public func walk<V: ViewWalker>(_ visitor: inout V) {
     switch storage {
     case let .trueContent(view):
-      visitor.visit(view)
+      view.walk(&visitor)
     case let .falseContent(view):
-      visitor.visit(view)
-    }
-  }
-
-  public func walk<V: StaticVisitor>(_ visitor: inout V) {
-    switch storage {
-    case let .trueContent(view):
-      if let staticView = view as? any StaticView {
-        staticView.walk(&visitor)
-      } else {
-        visitor.visit(view)
-      }
-    case let .falseContent(view):
-      if let staticView = view as? any StaticView {
-        staticView.walk(&visitor)
-      } else {
-        visitor.visit(view)
-      }
+      view.walk(&visitor)
     }
   }
 }
@@ -79,12 +63,12 @@ extension Optional: View where Wrapped: View {
     }
   }
 
-  public func _visitChildren<V>(_ visitor: V) where V: ViewVisitor {
+  public func walk<V: ViewWalker>(_ visitor: inout V) {
     switch self {
     case .none:
       break
     case let .some(wrapped):
-      visitor.visit(wrapped)
+      wrapped.walk(&visitor)
     }
   }
 }

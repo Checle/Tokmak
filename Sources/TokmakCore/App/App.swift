@@ -1,4 +1,5 @@
 // Copyright 2020-2021 Tokamak contributors
+// Copyright 2026 Checle LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +21,11 @@ import OpenCombineShim
 /// Provides the ability to set the title of the Scene.
 public protocol _TitledApp {
   static func _setTitle(_ title: String)
+}
+
+/// A visitor that can traverse an `App` tree.
+public protocol AppWalker: SceneWalker {
+  mutating func visit<A: App>(_ app: A)
 }
 
 /// The renderer is responsible for implementing certain functionality.
@@ -44,25 +50,25 @@ public protocol App: _TitledApp {
   static func main()
 
   init()
+
+  /// Traverse the app tree statically.
+  func walk<V: AppWalker>(_ visitor: inout V)
+}
+
+public extension App {
+  func walk<V: AppWalker>(_ visitor: inout V) {
+    visitor.visit(self)
+    body.walk(&visitor)
+  }
 }
 
 public struct _AppConfiguration {
-  public let reconciler: Reconciler
   public let rootEnvironment: EnvironmentValues
 
   public init(
-    reconciler: Reconciler = .stack,
     rootEnvironment: EnvironmentValues = .init()
   ) {
-    self.reconciler = reconciler
     self.rootEnvironment = rootEnvironment
-  }
-
-  public enum Reconciler {
-    /// Use the `StackReconciler`.
-    case stack
-    /// Use the `FiberReconciler` with layout steps optionally enabled.
-    case fiber(useDynamicLayout: Bool = false)
   }
 }
 

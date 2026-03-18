@@ -1,4 +1,5 @@
 // Copyright 2020-2021 Tokamak contributors
+// Copyright 2026 Checle LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,7 +21,7 @@ import Foundation
 ///       Text("Hello")
 ///       Text("World")
 ///     }
-public struct VStack<Content>: View, StaticPrimitiveView where Content: View {
+public struct VStack<Content>: View, _PrimitiveView where Content: View {
   public let alignment: HorizontalAlignment
 
   @_spi(TokmakCore)
@@ -28,13 +29,9 @@ public struct VStack<Content>: View, StaticPrimitiveView where Content: View {
 
   public let content: Content
 
-  public func walk<V: StaticVisitor>(_ visitor: inout V) {
+  public func walk<V: ViewWalker>(_ visitor: inout V) {
     visitor.visit(self)
-    if let staticContent = content as? any StaticView {
-      staticContent.walk(&visitor)
-    } else {
-      visitor.visit(content)
-    }
+    content.walk(&visitor)
   }
 
   public init(
@@ -49,10 +46,6 @@ public struct VStack<Content>: View, StaticPrimitiveView where Content: View {
 
   public var body: Never {
     neverBody("VStack")
-  }
-
-  public func _visitChildren<V>(_ visitor: V) where V: ViewVisitor {
-    visitor.visit(content)
   }
 }
 

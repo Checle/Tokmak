@@ -29,12 +29,6 @@ extension Spacer: AnyLVGLWidget {
     
     return spacer
   }
-
-  func update(widget: LVGLWidget) {
-    // Spacer has no state to update
-  }
-
-  var expand: Bool { true }
 }
 
 extension EmptyView: AnyLVGLWidget {
@@ -48,10 +42,4 @@ extension EmptyView: AnyLVGLWidget {
     
     return empty
   }
-
-  func update(widget: LVGLWidget) {
-    // EmptyView has no state to update
-  }
-
-  var expand: Bool { false }
 }

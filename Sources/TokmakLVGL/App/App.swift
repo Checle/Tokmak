@@ -22,16 +22,14 @@ public extension App {
     // Initialize LVGL
     lv_init()
     
-    // Create a simple display driver (this is a minimal implementation)
-    // In a real implementation, you would set up a proper display driver
-    // based on your target platform (embedded Linux, microcontroller, etc.)
+    // Create a specialized renderer for Embedded Swift that uses static dispatch.
+    let renderer = LVGLRenderer()
     
-    _ = Unmanaged.passRetained(LVGLRenderer(app, configuration.rootEnvironment))
+    // Start the rendering process by traversing the App hierarchy.
+    renderer.render(app)
   }
 
   static func _setTitle(_ title: String) {
-    // LVGL doesn't have a traditional title concept,
-    // but this could be used to set a label or display name if desired
   }
 
   var _phasePublisher: AnyPublisher<ScenePhase, Never> {

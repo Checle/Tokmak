@@ -1,4 +1,5 @@
 // Copyright 2020 Tokamak contributors
+// Copyright 2026 Checle LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,8 +21,8 @@ public struct Group<Content> {
 }
 
 extension Group: _PrimitiveView, View where Content: View {
-  public func _visitChildren<V>(_ visitor: V) where V: ViewVisitor {
-    visitor.visit(content)
+  public func walk<V: ViewWalker>(_ visitor: inout V) {
+    content.walk(&visitor)
   }
 }
 

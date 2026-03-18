@@ -32,15 +32,6 @@ extension VStack: AnyLVGLWidget {
     
     return container
   }
-
-  func update(widget: LVGLWidget) {
-    if case let .widget(w) = widget.storage {
-      // Update layout if needed
-      lv_obj_set_flex_flow(w, LV_FLEX_FLOW_COLUMN)
-    }
-  }
-
-  var expand: Bool { true }
 }
 
 extension HStack: AnyLVGLWidget {
@@ -59,14 +50,6 @@ extension HStack: AnyLVGLWidget {
     
     return container
   }
-
-  func update(widget: LVGLWidget) {
-    if case let .widget(w) = widget.storage {
-      lv_obj_set_flex_flow(w, LV_FLEX_FLOW_ROW)
-    }
-  }
-
-  var expand: Bool { true }
 }
 
 extension ZStack: AnyLVGLWidget {
@@ -83,9 +66,4 @@ extension ZStack: AnyLVGLWidget {
     
     return container
   }
-
-  func update(widget: LVGLWidget) {
-  }
-
-  var expand: Bool { true }
 }

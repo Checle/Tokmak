@@ -1,4 +1,5 @@
 // Copyright 2020-2021 Tokamak contributors
+// Copyright 2026 Checle LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,13 +21,6 @@ public struct AnyView: _PrimitiveView {
   /// The type of the underlying `view`.
   let type: Any.Type
 
-  /** The name of the unapplied generic type of the underlying `view`. `Button<Text>` and
-   `Button<Image>` types are different, but when reconciling the tree of mounted views
-   they are treated the same, thus the `Button` part of the type (the type constructor)
-   is stored in this property.
-   */
-  let typeConstructorName: String
-
   /// The actual `View` value wrapped within this `AnyView`.
   var view: Any
 
@@ -42,13 +36,13 @@ public struct AnyView: _PrimitiveView {
 
   let visitChildren: (ViewVisitor, Any) -> ()
 
+  let walkClosure: (inout any ViewWalker, Any) -> ()
+
   public init<V>(_ view: V) where V: View {
     if let anyView = view as? AnyView {
       self = anyView
     } else {
       type = V.self
-
-      typeConstructorName = TokmakCore.typeConstructorName(type)
 
       bodyType = V.Body.self
       self.view = view
@@ -56,11 +50,23 @@ public struct AnyView: _PrimitiveView {
       bodyClosure = { AnyView(($0 as! V).body) }
       // swiftlint:disable:next force_cast
       visitChildren = { $0.visit($1 as! V) }
+
+      walkClosure = { visitor, view in
+        var v = visitor
+        (view as! V).walk(&v)
+        visitor = v
+      }
     }
   }
 
   public func _visitChildren<V>(_ visitor: V) where V: ViewVisitor {
     visitChildren(visitor, view)
+  }
+
+  public func walk<V: ViewWalker>(_ visitor: inout V) {
+    var anyVisitor: any ViewWalker = visitor
+    walkClosure(&anyVisitor, view)
+    visitor = anyVisitor as! V
   }
 }
 
