@@ -1,4 +1,4 @@
-// Copyright 2021 Tokamak contributors
+// Copyright 2020 Tokamak contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,17 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-public extension View {
-  func task(
-    priority: TaskPriority = .userInitiated,
-    _ action: @escaping @Sendable () async -> ()
-  ) -> some View {
-    var task: Task<(), Never>?
-    return onAppear {
-      task = Task(priority: priority, operation: action)
-    }
-    .onDisappear {
-      task?.cancel()
-    }
-  }
+public struct Transaction {
+  @_spi(TokmakCore)
+  public static var _active: Transaction?
+
+  public init() {}
+  
+  // Minimal placeholder for animation compatibility
+  public init(animation: Any?) {}
 }

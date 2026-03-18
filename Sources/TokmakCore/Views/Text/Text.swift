@@ -32,7 +32,7 @@ import Foundation
 ///       .bold()
 ///       .italic()
 ///       .underline(true, color: .red)
-public struct Text: _PrimitiveView, Equatable, _PrimitiveView {
+public struct Text: _PrimitiveView, Equatable {
   let storage: _Storage
   let modifiers: [_Modifier]
 
@@ -115,26 +115,12 @@ public struct _TextProxy {
   public let subject: Text
 
   public init(_ subject: Text) {
-    // Resolve the foregroundStyle.
-    if let foregroundStyle = subject.environment._foregroundStyle {
-      var shape = _ShapeStyle_Shape(
-        for: .prepare(subject, level: 0),
-        in: subject.environment,
-        role: .fill
-      )
-      foregroundStyle._apply(to: &shape)
-      if case let .prepared(text) = shape.result {
-        self.subject = text
-        return
-      }
-    }
     self.subject = subject
   }
 
   public var storage: Text._Storage { subject.storage }
-  public var rawText: String {
-    subject.storage.rawText
-  }
+
+  public var rawText: String { subject.storage.rawText }
 
   public var modifiers: [Text._Modifier] {
     [

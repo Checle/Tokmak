@@ -130,20 +130,6 @@ public extension Color {
   }
 }
 
-public extension ShapeStyle where Self == Color {
-  static var clear: Self { .clear }
-  static var black: Self { .black }
-  static var white: Self { .white }
-  static var gray: Self { .gray }
-  static var red: Self { .red }
-  static var green: Self { .green }
-  static var blue: Self { .blue }
-  static var orange: Self { .orange }
-  static var yellow: Self { .yellow }
-  static var pink: Self { .pink }
-  static var purple: Self { .purple }
-}
-
 extension Color: ExpressibleByIntegerLiteral {
   /// Allows initializing value of `Color` type from hex values
   public init(integerLiteral bitMask: UInt32) {
@@ -180,14 +166,3 @@ public extension Color {
   }
 }
 
-extension Color: ShapeStyle {
-  public func _apply(to shape: inout _ShapeStyle_Shape) {
-    shape.result = .color(self)
-  }
-
-  public static func _apply(to type: inout _ShapeStyle_ShapeType) {}
-}
-
-extension Color: View {
-  public typealias Body = _ShapeView<Rectangle, Self>
-}

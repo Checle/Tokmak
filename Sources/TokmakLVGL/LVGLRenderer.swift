@@ -140,26 +140,22 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, DynamicPropertyVisitor {
   }
 }
 
-protocol StateProtocol {
-  mutating func _link(to fiber: any AnyFiber, at index: Int, redraw: @escaping () -> ())
-}
-
 /// A specialized renderer for Embedded Swift that uses static dispatch.
-final class LVGLRenderer {
-  static var shared: LVGLRenderer?
+public final class LVGLRenderer {
+  public static var shared: LVGLRenderer?
   
   let screen: UnsafeMutablePointer<lv_obj_t>
   
   private var rootFiber: (any AnyFiber)?
-  private var rootApp: (any App)?
+  private var rootApp: _AnyApp?
   
-  init() {
+  public init() {
     self.screen = lv_scr_act()
     Self.shared = self
   }
   
-  func render<A: App>(_ app: A) {
-    self.rootApp = app
+  public func render<A: App>(_ app: A) {
+    self.rootApp = _AnyApp(app)
     if rootFiber == nil {
       rootFiber = Fiber<A>()
     }
@@ -168,14 +164,10 @@ final class LVGLRenderer {
     app.walk(&visitor)
   }
 
-  func requestRedraw() {
+  public func requestRedraw() {
     guard let rootApp = rootApp else { return }
     var visitor = LVGLVisitor(parent: screen, renderer: self, rootFiber: rootFiber)
     rootApp.walk(&visitor)
     lv_refr_now(nil)
   }
-}
-
-private struct EmptyApp: App {
-    var body: some Scene { WindowGroup { EmptyView() } }
 }

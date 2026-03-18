@@ -66,16 +66,12 @@ public struct Binding<Value>: DynamicProperty {
 }
 
 public extension Binding {
-  func transaction(_ transaction: Transaction) -> Binding<Value> {
-    var binding = self
-    binding.transaction = transaction
-    return binding
+  public func transaction(_ transaction: Transaction) -> Binding<Value> {
+    var result = self
+    result.transaction = transaction
+    return result
   }
-
-  func animation(_ animation: Animation? = .default) -> Binding<Value> {
-    transaction(.init(animation: animation))
   }
-}
 
 extension Binding: Identifiable where Value: Identifiable {
   public var id: Value.ID { wrappedValue.id }

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import OpenCombineShim
+import CoreGraphics
 
 public struct EnvironmentValues: CustomStringConvertible {
   public var description: String {
@@ -74,6 +75,15 @@ public extension EnvironmentValues {
       self[IsEnabledKey.self] = newValue
     }
   }
+
+  var measureText: (Text, ProposedViewSize, EnvironmentValues) -> CGSize {
+    get { self[MeasureTextKey.self] }
+    set { self[MeasureTextKey.self] = newValue }
+  }
+}
+
+struct MeasureTextKey: EnvironmentKey {
+  static let defaultValue: (Text, ProposedViewSize, EnvironmentValues) -> CGSize = { _, _, _ in .zero }
 }
 
 struct _EnvironmentValuesWritingModifier: ViewModifier, _EnvironmentModifier {

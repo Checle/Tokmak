@@ -27,11 +27,14 @@ public protocol AnyFiber: AnyObject {
   /// The index of this fiber in the parent's list of children.
   var index: Int { get set }
 
-  func makeChild<V: View>(_ type: V.Type, at index: Int) -> Fiber<V>
+  /// The values of state stored in this fiber.
+  var stateValues: [Any] { get set }
+
+  func makeChild<T>(_ type: T.Type, at index: Int) -> Fiber<T>
 }
 
-/// A generic node in the persistent tree that knows its view type.
-public final class Fiber<V: View>: AnyFiber {
+/// A generic node in the persistent tree that knows its type.
+public final class Fiber<T>: AnyFiber {
   public weak var parent: (any AnyFiber)?
   public var child: (any AnyFiber)?
   public var sibling: (any AnyFiber)?
@@ -39,13 +42,16 @@ public final class Fiber<V: View>: AnyFiber {
   public var target: UnsafeMutableRawPointer?
   public var index: Int = 0
   
+  /// The values of state stored in this fiber.
+  public var stateValues: [Any] = []
+  
   /// The current state stored in this fiber.
   /// (Placeholder for future state implementation)
   public var state: Any?
   
   public init() {}
 
-  public func makeChild<Child: View>(_ type: Child.Type, at index: Int) -> Fiber<Child> {
+  public func makeChild<Child>(_ type: Child.Type, at index: Int) -> Fiber<Child> {
     if let child = self.child as? Fiber<Child>, child.index == index {
       return child
     }

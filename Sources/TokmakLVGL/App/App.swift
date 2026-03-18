@@ -32,10 +32,6 @@ public extension App {
   static func _setTitle(_ title: String) {
   }
 
-  var _phasePublisher: AnyPublisher<ScenePhase, Never> {
-    CurrentValueSubject(.active).eraseToAnyPublisher()
-  }
-
   var _colorSchemePublisher: AnyPublisher<ColorScheme, Never> {
     CurrentValueSubject(.light).eraseToAnyPublisher()
   }

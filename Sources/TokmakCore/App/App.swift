@@ -39,9 +39,6 @@ public protocol App: _TitledApp {
     with configuration: _AppConfiguration
   )
 
-  /// Implemented by the renderer to update the `App` on `ScenePhase` changes
-  var _phasePublisher: AnyPublisher<ScenePhase, Never> { get }
-
   /// Implemented by the renderer to update the `App` on `ColorScheme` changes
   var _colorSchemePublisher: AnyPublisher<ColorScheme, Never> { get }
 
@@ -53,6 +50,9 @@ public protocol App: _TitledApp {
 
   /// Traverse the app tree statically.
   func walk<V: AppWalker>(_ visitor: inout V)
+
+  /// Traverse the dynamic properties of this app.
+  mutating func visitDynamicProperties<V: DynamicPropertyVisitor>(_ visitor: inout V)
 }
 
 public extension App {
@@ -60,6 +60,8 @@ public extension App {
     visitor.visit(self)
     body.walk(&visitor)
   }
+
+  mutating func visitDynamicProperties<V: DynamicPropertyVisitor>(_ visitor: inout V) {}
 }
 
 public struct _AppConfiguration {

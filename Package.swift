@@ -20,19 +20,11 @@ let package = Package(
       name: "TokmakLVGL",
       targets: ["TokmakLVGL"]
     ),
-    .library(
-      name: "TokmakShim",
-      targets: ["TokmakShim"]
-    ),
   ],
   dependencies: [
     .package(
       url: "https://github.com/OpenCombine/OpenCombine.git",
       from: "0.12.0"
-    ),
-    .package(
-      url: "https://github.com/pointfreeco/swift-snapshot-testing.git",
-      from: "1.9.0"
     ),
   ],
   targets: [
@@ -43,12 +35,6 @@ let package = Package(
           name: "OpenCombineShim",
           package: "OpenCombine"
         ),
-      ]
-    ),
-    .target(
-      name: "TokmakShim",
-      dependencies: [
-        .target(name: "TokmakLVGL"),
       ]
     ),
     .target(
@@ -72,32 +58,6 @@ let package = Package(
           package: "OpenCombine"
         ),
       ]
-    ),
-    .target(
-      name: "TokmakTestRenderer",
-      dependencies: ["TokmakCore"]
-    ),
-    .testTarget(
-      name: "TokmakLayoutTests",
-      dependencies: [
-        "TokmakCore",
-        .product(
-          name: "SnapshotTesting",
-          package: "swift-snapshot-testing",
-          condition: .when(platforms: [.macOS])
-        ),
-      ]
-    ),
-    .testTarget(
-      name: "TokmakReconcilerTests",
-      dependencies: [
-        "TokmakCore",
-        "TokmakTestRenderer",
-      ]
-    ),
-    .testTarget(
-      name: "TokmakTests",
-      dependencies: ["TokmakTestRenderer"]
     ),
   ]
 )

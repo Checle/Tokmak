@@ -35,16 +35,3 @@ public extension View {
     environment(\.colorScheme, colorScheme)
   }
 }
-
-public struct PreferredColorSchemeKey: PreferenceKey {
-  public typealias Value = ColorScheme?
-  public static func reduce(value: inout Value, nextValue: () -> Value) {
-    value = nextValue()
-  }
-}
-
-public extension View {
-  func preferredColorScheme(_ colorScheme: ColorScheme?) -> some View {
-    preference(key: PreferredColorSchemeKey.self, value: colorScheme)
-  }
-}

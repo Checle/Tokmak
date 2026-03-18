@@ -56,11 +56,6 @@ public struct _AnyApp: App {
   }
 
   @_spi(TokmakCore)
-  public var _phasePublisher: AnyPublisher<ScenePhase, Never> {
-    fatalError("`_AnyApp` cannot monitor scenePhase. Access underlying `app` value.")
-  }
-
-  @_spi(TokmakCore)
   public var _colorSchemePublisher: AnyPublisher<ColorScheme, Never> {
     fatalError("`_AnyApp` cannot monitor colorScheme. Access underlying `app` value.")
   }

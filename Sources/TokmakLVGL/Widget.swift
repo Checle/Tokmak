@@ -20,6 +20,12 @@ protocol AnyLVGLWidget {
 }
 
 struct LVGLWidgetView<Content: View>: _PrimitiveView, AnyLVGLWidget {
+  public var body: Never {
+    neverBody("LVGLWidgetView")
+  }
+
+  public mutating func visitDynamicProperties<V: DynamicPropertyVisitor>(_ visitor: inout V) {}
+
   let build: (LVGLRenderer, UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t>
   let content: Content
 
@@ -51,8 +57,10 @@ extension LVGLWidgetView where Content == EmptyView {
 
 final class LVGLWidget: Target {
   let obj: UnsafeMutablePointer<lv_obj_t>
+  var view: AnyView
 
   init(_ obj: UnsafeMutablePointer<lv_obj_t>) {
     self.obj = obj
+    self.view = AnyView(EmptyView())
   }
 }
