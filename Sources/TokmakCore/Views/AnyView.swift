@@ -27,15 +27,6 @@ public struct AnyView: _PrimitiveView {
   /** Type-erased `body` of the underlying `view`. Needs to take a fresh version of `view` as an
    argument, otherwise it captures an old value of the `body` property.
    */
-  let bodyClosure: (Any) -> AnyView
-
-  /** The type of the `body` of the underlying `view`. Used to cast the result of the applied
-   `bodyClosure` property.
-   */
-  let bodyType: Any.Type
-
-  let visitChildren: (ViewVisitor, Any) -> ()
-
   let walkClosure: (inout any ViewWalker, Any) -> ()
 
   public init<V>(_ view: V) where V: View {
@@ -43,13 +34,7 @@ public struct AnyView: _PrimitiveView {
       self = anyView
     } else {
       type = V.self
-
-      bodyType = V.Body.self
       self.view = view
-      // swiftlint:disable:next force_cast
-      bodyClosure = { AnyView(($0 as! V).body) }
-      // swiftlint:disable:next force_cast
-      visitChildren = { $0.visit($1 as! V) }
 
       walkClosure = { visitor, view in
         var v = visitor
@@ -57,10 +42,6 @@ public struct AnyView: _PrimitiveView {
         visitor = v
       }
     }
-  }
-
-  public func _visitChildren<V>(_ visitor: V) where V: ViewVisitor {
-    visitChildren(visitor, view)
   }
 
   public func walk<V: ViewWalker>(_ visitor: inout V) {

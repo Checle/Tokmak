@@ -26,14 +26,6 @@ public protocol _EnvironmentModifier {
   func modifyEnvironment(_ values: inout EnvironmentValues)
 }
 
-public extension ViewModifier where Self: _EnvironmentModifier {
-  static func _makeView(_ inputs: ViewInputs<Self>) -> ViewOutputs {
-    var environment = inputs.environment.environment
-    inputs.content.modifyEnvironment(&environment)
-    return .init(inputs: inputs, environment: environment)
-  }
-}
-
 public struct _EnvironmentKeyWritingModifier<Value>: ViewModifier, _EnvironmentModifier {
   public let keyPath: WritableKeyPath<EnvironmentValues, Value>
   public let value: Value

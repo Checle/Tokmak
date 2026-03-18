@@ -1,4 +1,5 @@
 // Copyright 2022 Tokamak contributors
+// Copyright 2026 Checle LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,38 +18,10 @@
 
 import Foundation
 
-/// Used to identify an alignment guide.
-///
-/// Typically, you would define an alignment guide inside
-/// an extension on `HorizontalAlignment` or `VerticalAlignment`:
-///
-///     extension HorizontalAlignment {
-///       private enum MyAlignmentGuide: AlignmentID {
-///         static func defaultValue(in context: ViewDimensions) -> CGFloat {
-///           return 0.0
-///         }
-///       }
-///       public static let myAlignmentGuide = Self(MyAlignmentGuide.self)
-///     }
-///
-/// Which you can then use with the `alignmentGuide` modifier:
-///
-///     VStack(alignment: .myAlignmentGuide) {
-///       Text("Align Leading")
-///         .border(.red)
-///         .alignmentGuide(.myAlignmentGuide) { $0[.leading] }
-///       Text("Align Trailing")
-///         .border(.blue)
-///         .alignmentGuide(.myAlignmentGuide) { $0[.trailing] }
-///     }
-///     .border(.green)
 public protocol AlignmentID {
-  /// The default value for this alignment guide
-  /// when not set via the `alignmentGuide` modifier.
   static func defaultValue(in context: ViewDimensions) -> CGFloat
 }
 
-/// An alignment position along the horizontal axis.
 @frozen
 public struct HorizontalAlignment: Equatable {
   public static func == (lhs: Self, rhs: Self) -> Bool {
@@ -122,13 +95,8 @@ extension VerticalAlignment {
       context.height
     }
   }
-
-  // TODO: Add baseline vertical alignment guides.
-  // public static let firstTextBaseline: VerticalAlignment
-  // public static let lastTextBaseline: VerticalAlignment
 }
 
-/// An alignment in both axes.
 public struct Alignment: Equatable {
   public var horizontal: HorizontalAlignment
   public var vertical: VerticalAlignment
@@ -149,5 +117,47 @@ public struct Alignment: Equatable {
   public static let trailing = Self(horizontal: .trailing, vertical: .center)
   public static let bottomLeading = Self(horizontal: .leading, vertical: .bottom)
   public static let bottom = Self(horizontal: .center, vertical: .bottom)
-  public static let bottomTrailing = Self(horizontal: .trailing, vertical: .bottom)
+  public static let bottomTrailing = Self(horizontal: .trailing, vertical: .center)
+}
+
+public struct ViewDimensions: Equatable {
+  @_spi(TokmakCore)
+  public let size: CGSize
+
+  @_spi(TokmakCore)
+  public let alignmentGuides: [ObjectIdentifier: CGFloat]
+
+  public var width: CGFloat { size.width }
+  public var height: CGFloat { size.height }
+
+  public subscript(guide: HorizontalAlignment) -> CGFloat {
+    self[explicit: guide] ?? guide.id.defaultValue(in: self)
+  }
+
+  public subscript(guide: VerticalAlignment) -> CGFloat {
+    self[explicit: guide] ?? guide.id.defaultValue(in: self)
+  }
+
+  public subscript(explicit guide: HorizontalAlignment) -> CGFloat? {
+    alignmentGuides[.init(guide.id)]
+  }
+
+  public subscript(explicit guide: VerticalAlignment) -> CGFloat? {
+    alignmentGuides[.init(guide.id)]
+  }
+}
+
+/// The position of the `View` relative to its parent.
+public struct ViewOrigin: Equatable {
+  @_spi(TokmakCore)
+  public let origin: CGPoint
+
+  @_spi(TokmakCore)
+  public var x: CGFloat { origin.x }
+  @_spi(TokmakCore)
+  public var y: CGFloat { origin.y }
+
+  public init(origin: CGPoint) {
+    self.origin = origin
+  }
 }

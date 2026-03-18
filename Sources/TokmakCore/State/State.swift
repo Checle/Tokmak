@@ -22,7 +22,6 @@ protocol ValueStorage {
 protocol WritableValueStorage: ValueStorage {
   var setter: ((Any, Transaction) -> ())? { get set }
 }
-
 @propertyWrapper
 public struct State<Value>: DynamicProperty {
   private let initialValue: Value
@@ -36,7 +35,27 @@ public struct State<Value>: DynamicProperty {
     initialValue = value
   }
 
+  public mutating func _link(to fiber: any AnyFiber, at index: Int, redraw: @escaping () -> ()) {
+    // If the fiber doesn't have a value for this index, use the initial value.
+    if fiber.stateValues.count <= index {
+      while fiber.stateValues.count <= index {
+        fiber.stateValues.append(initialValue)
+      }
+    }
+
+    getter = { [weak fiber] in
+      fiber?.stateValues[index] ?? initialValue
+    }
+
+    setter = { [weak fiber] newValue, _ in
+      guard let fiber = fiber else { return }
+      fiber.stateValues[index] = newValue
+      redraw()
+    }
+  }
+
   public var wrappedValue: Value {
+...
     get { getter?() as? Value ?? initialValue }
     nonmutating set { setter?(newValue, Transaction._active ?? .init(animation: nil)) }
   }

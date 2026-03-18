@@ -29,14 +29,7 @@ public extension SceneBuilder {
   static func buildBlock<C0, C1>(_ c0: C0, _ c1: C1) -> some Scene where C0: Scene,
     C1: Scene
   {
-    _TupleScene(
-      (c0, c1),
-      children: [_AnyScene(c0), _AnyScene(c1)],
-      visit: {
-        $0.visit(c0)
-        $0.visit(c1)
-      }
-    )
+    _TupleScene((c0, c1))
   }
 }
 
@@ -44,15 +37,7 @@ public extension SceneBuilder {
   static func buildBlock<C0, C1, C2>(_ c0: C0, _ c1: C1, _ c2: C2) -> some Scene
     where C0: Scene, C1: Scene, C2: Scene
   {
-    _TupleScene(
-      (c0, c1, c2),
-      children: [_AnyScene(c0), _AnyScene(c1), _AnyScene(c2)],
-      visit: {
-        $0.visit(c0)
-        $0.visit(c1)
-        $0.visit(c2)
-      }
-    )
+    _TupleScene((c0, c1, c2))
   }
 }
 
@@ -63,16 +48,7 @@ public extension SceneBuilder {
     _ c2: C2,
     _ c3: C3
   ) -> some Scene where C0: Scene, C1: Scene, C2: Scene, C3: Scene {
-    _TupleScene(
-      (c0, c1, c2, c3),
-      children: [_AnyScene(c0), _AnyScene(c1), _AnyScene(c2), _AnyScene(c3)],
-      visit: {
-        $0.visit(c0)
-        $0.visit(c1)
-        $0.visit(c2)
-        $0.visit(c3)
-      }
-    )
+    _TupleScene((c0, c1, c2, c3))
   }
 }
 
@@ -84,17 +60,7 @@ public extension SceneBuilder {
     _ c3: C3,
     _ c4: C4
   ) -> some Scene where C0: Scene, C1: Scene, C2: Scene, C3: Scene, C4: Scene {
-    _TupleScene(
-      (c0, c1, c2, c3, c4),
-      children: [_AnyScene(c0), _AnyScene(c1), _AnyScene(c2), _AnyScene(c3), _AnyScene(c4)],
-      visit: {
-        $0.visit(c0)
-        $0.visit(c1)
-        $0.visit(c2)
-        $0.visit(c3)
-        $0.visit(c4)
-      }
-    )
+    _TupleScene((c0, c1, c2, c3, c4))
   }
 }
 
@@ -109,25 +75,7 @@ public extension SceneBuilder {
   ) -> some Scene where C0: Scene, C1: Scene, C2: Scene, C3: Scene, C4: Scene,
     C5: Scene
   {
-    _TupleScene(
-      (c0, c1, c2, c3, c4, c5),
-      children: [
-        _AnyScene(c0),
-        _AnyScene(c1),
-        _AnyScene(c2),
-        _AnyScene(c3),
-        _AnyScene(c4),
-        _AnyScene(c5),
-      ],
-      visit: {
-        $0.visit(c0)
-        $0.visit(c1)
-        $0.visit(c2)
-        $0.visit(c3)
-        $0.visit(c4)
-        $0.visit(c5)
-      }
-    )
+    _TupleScene((c0, c1, c2, c3, c4, c5))
   }
 }
 
@@ -143,27 +91,7 @@ public extension SceneBuilder {
   ) -> some Scene where C0: Scene, C1: Scene, C2: Scene, C3: Scene,
     C4: Scene, C5: Scene, C6: Scene
   {
-    _TupleScene(
-      (c0, c1, c2, c3, c4, c5, c6),
-      children: [
-        _AnyScene(c0),
-        _AnyScene(c1),
-        _AnyScene(c2),
-        _AnyScene(c3),
-        _AnyScene(c4),
-        _AnyScene(c5),
-        _AnyScene(c6),
-      ],
-      visit: {
-        $0.visit(c0)
-        $0.visit(c1)
-        $0.visit(c2)
-        $0.visit(c3)
-        $0.visit(c4)
-        $0.visit(c5)
-        $0.visit(c6)
-      }
-    )
+    _TupleScene((c0, c1, c2, c3, c4, c5, c6))
   }
 }
 
@@ -180,29 +108,7 @@ public extension SceneBuilder {
   ) -> some Scene where C0: Scene, C1: Scene, C2: Scene, C3: Scene, C4: Scene, C5: Scene, C6: Scene,
     C7: Scene
   {
-    _TupleScene(
-      (c0, c1, c2, c3, c4, c5, c6, c7),
-      children: [
-        _AnyScene(c0),
-        _AnyScene(c1),
-        _AnyScene(c2),
-        _AnyScene(c3),
-        _AnyScene(c4),
-        _AnyScene(c5),
-        _AnyScene(c6),
-        _AnyScene(c7),
-      ],
-      visit: {
-        $0.visit(c0)
-        $0.visit(c1)
-        $0.visit(c2)
-        $0.visit(c3)
-        $0.visit(c4)
-        $0.visit(c5)
-        $0.visit(c6)
-        $0.visit(c7)
-      }
-    )
+    _TupleScene((c0, c1, c2, c3, c4, c5, c6, c7))
   }
 }
 
@@ -220,31 +126,7 @@ public extension SceneBuilder {
   ) -> some Scene where C0: Scene, C1: Scene, C2: Scene, C3: Scene, C4: Scene, C5: Scene, C6: Scene,
     C7: Scene, C8: Scene
   {
-    _TupleScene(
-      (c0, c1, c2, c3, c4, c5, c6, c7, c8),
-      children: [
-        _AnyScene(c0),
-        _AnyScene(c1),
-        _AnyScene(c2),
-        _AnyScene(c3),
-        _AnyScene(c4),
-        _AnyScene(c5),
-        _AnyScene(c6),
-        _AnyScene(c7),
-        _AnyScene(c8),
-      ],
-      visit: {
-        $0.visit(c0)
-        $0.visit(c1)
-        $0.visit(c2)
-        $0.visit(c3)
-        $0.visit(c4)
-        $0.visit(c5)
-        $0.visit(c6)
-        $0.visit(c7)
-        $0.visit(c8)
-      }
-    )
+    _TupleScene((c0, c1, c2, c3, c4, c5, c6, c7, c8))
   }
 }
 
@@ -263,32 +145,6 @@ public extension SceneBuilder {
   ) -> some Scene where C0: Scene, C1: Scene, C2: Scene, C3: Scene, C4: Scene, C5: Scene, C6: Scene,
     C7: Scene, C8: Scene, C9: Scene
   {
-    _TupleScene(
-      (c0, c1, c2, c3, c4, c5, c6, c7, c8, c9),
-      children: [
-        _AnyScene(c0),
-        _AnyScene(c1),
-        _AnyScene(c2),
-        _AnyScene(c3),
-        _AnyScene(c4),
-        _AnyScene(c5),
-        _AnyScene(c6),
-        _AnyScene(c7),
-        _AnyScene(c8),
-        _AnyScene(c9),
-      ],
-      visit: {
-        $0.visit(c0)
-        $0.visit(c1)
-        $0.visit(c2)
-        $0.visit(c3)
-        $0.visit(c4)
-        $0.visit(c5)
-        $0.visit(c6)
-        $0.visit(c7)
-        $0.visit(c8)
-        $0.visit(c9)
-      }
-    )
+    _TupleScene((c0, c1, c2, c3, c4, c5, c6, c7, c8, c9))
   }
 }

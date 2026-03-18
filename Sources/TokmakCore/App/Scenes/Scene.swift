@@ -17,9 +17,8 @@
 //
 
 /// A visitor that can traverse a `Scene` tree.
-public protocol SceneWalker {
+public protocol SceneWalker: ViewWalker {
   mutating func visit<S: Scene>(_ scene: S)
-  mutating func visit<V: View>(_ view: V)
 }
 
 public protocol Scene {

@@ -16,12 +16,13 @@ import CLVGL
 import TokmakCore
 
 /// A lean, reflection-free visitor for LVGL.
-struct LVGLVisitor: ReconciliationWalker, AppWalker {
+struct LVGLVisitor: ReconciliationWalker, AppWalker, DynamicPropertyVisitor {
   var parent: UnsafeMutablePointer<lv_obj_t>
   let renderer: LVGLRenderer
   
   var currentFiber: (any AnyFiber)?
   var childIndex: Int = 0
+  var dynamicPropertyIndex: Int = 0
   
   init(parent: UnsafeMutablePointer<lv_obj_t>, renderer: LVGLRenderer, rootFiber: (any AnyFiber)?) {
     self.parent = parent
@@ -29,41 +30,70 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker {
     self.currentFiber = rootFiber
   }
 
+  mutating func visit<P: DynamicProperty>(_ property: inout P) {
+    if let fiber = currentFiber {
+      if var state = property as? StateProtocol {
+        state._link(to: fiber, at: dynamicPropertyIndex, redraw: { [weak renderer] in
+          renderer?.requestRedraw()
+        })
+        property = state as! P
+      }
+    }
+    dynamicPropertyIndex += 1
+  }
+
   mutating func visit<A: App>(_ app: A) {
     let originalFiber = currentFiber
     let originalIndex = childIndex
+    let originalPropertyIndex = dynamicPropertyIndex
     
     currentFiber = currentFiber?.makeChild(A.self, at: childIndex)
     childIndex = 0
+    dynamicPropertyIndex = 0
+    
+    var app = app
+    app.visitDynamicProperties(&self)
     
     // Apps are transparent, continue to body
     app.body.walk(&self)
     
     currentFiber = originalFiber
     childIndex = originalIndex + 1
+    dynamicPropertyIndex = originalPropertyIndex
   }
 
   mutating func visit<S: Scene>(_ scene: S) {
     let originalFiber = currentFiber
     let originalIndex = childIndex
+    let originalPropertyIndex = dynamicPropertyIndex
     
     currentFiber = currentFiber?.makeChild(S.self, at: childIndex)
     childIndex = 0
+    dynamicPropertyIndex = 0
+    
+    var scene = scene
+    scene.visitDynamicProperties(&self)
     
     // Scenes are transparent, continue to body
     scene.body.walk(&self)
     
     currentFiber = originalFiber
     childIndex = originalIndex + 1
+    dynamicPropertyIndex = originalPropertyIndex
   }
 
   mutating func visit<V: View>(_ view: V) {
     let originalFiber = currentFiber
     let originalIndex = childIndex
+    let originalPropertyIndex = dynamicPropertyIndex
     
     let fiber = currentFiber?.makeChild(V.self, at: childIndex)
     currentFiber = fiber
     childIndex = 0
+    dynamicPropertyIndex = 0
+    
+    var view = view
+    view.visitDynamicProperties(&self)
     
     // If we have a fiber, we can reuse or update its target
     let target: UnsafeMutablePointer<lv_obj_t>
@@ -106,7 +136,12 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker {
     
     currentFiber = originalFiber
     childIndex = originalIndex + 1
+    dynamicPropertyIndex = originalPropertyIndex
   }
+}
+
+protocol StateProtocol {
+  mutating func _link(to fiber: any AnyFiber, at index: Int, redraw: @escaping () -> ())
 }
 
 /// A specialized renderer for Embedded Swift that uses static dispatch.

@@ -16,23 +16,6 @@ public protocol ViewModifier {
   typealias Content = _ViewModifier_Content<Self>
   associatedtype Body: View
   func body(content: Content) -> Self.Body
-
-  static func _makeView(_ inputs: ViewInputs<Self>) -> ViewOutputs
-  func _visitChildren<V>(_ visitor: V, content: Content) where V: ViewVisitor
-}
-
-public extension ViewModifier {
-  static func _makeView(_ inputs: ViewInputs<Self>) -> ViewOutputs {
-    .init(inputs: inputs)
-  }
-
-  func _visitChildren<V>(_ visitor: V, content: Content) where V: ViewVisitor {
-    if Body.self == Never.self {
-      content.visitChildren(visitor)
-    } else {
-      visitor.visit(body(content: content))
-    }
-  }
 }
 
 public struct _ViewModifier_Content<Modifier>: View
@@ -40,26 +23,23 @@ public struct _ViewModifier_Content<Modifier>: View
 {
   public let modifier: Modifier
   public let view: AnyView
-  let visitChildren: (ViewVisitor) -> ()
 
   public init(modifier: Modifier, view: AnyView) {
     self.modifier = modifier
     self.view = view
-    visitChildren = { $0.visit(view) }
   }
 
   public init<V: View>(modifier: Modifier, view: V) {
     self.modifier = modifier
     self.view = AnyView(view)
-    visitChildren = { $0.visit(view) }
   }
 
   public var body: some View {
     view
   }
 
-  public func _visitChildren<V>(_ visitor: V) where V: ViewVisitor {
-    visitChildren(visitor)
+  public func walk<V: ViewWalker>(_ visitor: inout V) {
+    view.walk(&visitor)
   }
 }
 

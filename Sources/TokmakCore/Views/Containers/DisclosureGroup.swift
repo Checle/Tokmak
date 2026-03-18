@@ -41,6 +41,14 @@ public struct DisclosureGroup<Label, Content>: _PrimitiveView where Label: View,
     self.label = label()
     self.content = content
   }
+
+  mutating func toggle() {
+    if let isExpandedBinding = isExpandedBinding {
+      isExpandedBinding.wrappedValue.toggle()
+    } else {
+      isExpanded.wrappedValue.toggle()
+    }
+  }
 }
 
 public extension DisclosureGroup where Label == Text {
@@ -82,8 +90,9 @@ public struct _DisclosureGroupProxy<Label, Content>
     subject.isExpandedBinding?.wrappedValue ?? subject.isExpanded
   }
 
-  public func toggleIsExpanded() {
-    subject.isExpandedBinding?.wrappedValue.toggle()
-    subject.isExpanded.toggle()
+  public mutating func toggleIsExpanded() {
+    var subject = subject
+    subject.toggle()
+    self.subject = subject
   }
 }

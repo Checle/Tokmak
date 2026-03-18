@@ -51,6 +51,14 @@ extension ModifiedContent: View, GroupView, ParentView where Content: View, Modi
   public var children: [AnyView] {
     [AnyView(content)]
   }
+
+  public func walk<V: ViewWalker>(_ visitor: inout V) {
+    if Modifier.Body.self == Never.self {
+      content.walk(&visitor)
+    } else {
+      modifier.body(content: .init(modifier: modifier, view: content)).walk(&visitor)
+    }
+  }
 }
 
 extension ModifiedContent: ViewModifier where Content: ViewModifier, Modifier: ViewModifier {

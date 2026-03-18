@@ -17,17 +17,33 @@
 
 struct _TupleScene<T>: Scene, GroupScene {
   let value: T
-  let children: [_AnyScene]
-  let visit: (SceneVisitor) -> ()
 
-  init(
-    _ value: T,
-    children: [_AnyScene],
-    visit: @escaping (SceneVisitor) -> ()
-  ) {
+  init(_ value: T) {
     self.value = value
-    self.children = children
-    self.visit = visit
+  }
+
+  public var children: [_AnyScene] {
+    if let v = value as? (any Scene, any Scene) {
+      return [_AnyScene(v.0), _AnyScene(v.1)]
+    } else if let v = value as? (any Scene, any Scene, any Scene) {
+      return [_AnyScene(v.0), _AnyScene(v.1), _AnyScene(v.2)]
+    } else if let v = value as? any Scene {
+      return [_AnyScene(v)]
+    }
+    return []
+  }
+
+  public func walk<V: SceneWalker>(_ visitor: inout V) {
+    if let v = value as? (any Scene, any Scene) {
+      v.0.walk(&visitor)
+      v.1.walk(&visitor)
+    } else if let v = value as? (any Scene, any Scene, any Scene) {
+      v.0.walk(&visitor)
+      v.1.walk(&visitor)
+      v.2.walk(&visitor)
+    } else if let v = value as? any Scene {
+      v.walk(&visitor)
+    }
   }
 
   var body: Never {

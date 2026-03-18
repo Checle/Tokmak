@@ -16,6 +16,7 @@
 //
 
 import Foundation
+import CoreGraphics
 
 public extension GraphicsContext {
   enum _GradientGeometry {

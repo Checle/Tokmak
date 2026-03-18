@@ -27,6 +27,11 @@ public protocol ReconciliationWalker: ViewWalker {
   var currentFiber: (any AnyFiber)? { get set }
 }
 
+/// A visitor that can traverse the dynamic properties of a `View`.
+public protocol DynamicPropertyVisitor {
+  mutating func visit<P: DynamicProperty>(_ property: inout P)
+}
+
 public protocol View {
   associatedtype Body: View
 
@@ -35,12 +40,17 @@ public protocol View {
 
   /// Traverse the view tree statically.
   func walk<V: ViewWalker>(_ visitor: inout V)
+
+  /// Traverse the dynamic properties of this view.
+  mutating func visitDynamicProperties<V: DynamicPropertyVisitor>(_ visitor: inout V)
 }
 
 public extension View {
   func walk<V: ViewWalker>(_ visitor: inout V) {
     body.walk(&visitor)
   }
+
+  mutating func visitDynamicProperties<V: DynamicPropertyVisitor>(_ visitor: inout V) {}
 }
 
 public extension Never {
