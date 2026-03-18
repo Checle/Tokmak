@@ -17,16 +17,17 @@ let package = Package(
   products: [
     .library(name: "CLVGL", targets: ["CLVGL"]),
     .library(
-      name: "TokmakLVGL",
-      targets: ["TokmakLVGL"]
+      name: "TokmakUI",
+      targets: ["TokmakUI"]
     ),
   ],
   dependencies: [
   ],
   targets: [
     .target(
-      name: "TokmakCore",
+      name: "TokmakUI",
       dependencies: [
+        "CLVGL",
       ]
     ),
     .target(
@@ -40,12 +41,6 @@ let package = Package(
         .unsafeFlags(SDLCFlags + ["-DLV_LVGL_H_INCLUDE_SIMPLE"]),
       ],
       linkerSettings: [.unsafeFlags(["-L/opt/homebrew/lib", "-lSDL2"])]
-    ),
-    .target(
-      name: "TokmakLVGL",
-      dependencies: [
-        "TokmakCore", "CLVGL",
-      ]
     ),
   ]
 )

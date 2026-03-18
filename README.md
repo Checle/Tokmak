@@ -25,8 +25,7 @@ dependencies: [
 ## Example
 
 ```swift
-import TokmakCore
-import TokmakLVGL
+import TokmakUI
 
 struct AppView: View {
     @State var count = 0
