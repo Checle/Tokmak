@@ -53,7 +53,6 @@ public protocol App: _TitledApp {
 public extension App {
   func walk<V: AppWalker>(_ visitor: inout V) {
     visitor.visit(self)
-    body.walk(&visitor)
   }
 
   mutating func visitProperties<V: PropertyVisitor>(_ visitor: inout V) {}
@@ -71,9 +70,13 @@ public struct _AppConfiguration {
 
 public extension App {
   static var _configuration: _AppConfiguration { .init() }
+}
 
+#if !os(macOS) && !os(Linux) && !TOKMAK_PLATFORM_PICO
+public extension App {
   static func main() {
     let app = Self()
     _launch(app, with: Self._configuration)
   }
 }
+#endif

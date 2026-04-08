@@ -21,6 +21,7 @@ public struct _AnyApp: App {
   let type: Any.Type
   let bodyClosure: (Any) -> _AnyScene
   let bodyType: Any.Type
+  let walkClosure: (inout any AppWalker, Any) -> ()
 
   public init<A: App>(_ app: A) {
     self.app = app
@@ -28,6 +29,17 @@ public struct _AnyApp: App {
     // swiftlint:disable:next force_cast
     bodyClosure = { _AnyScene(($0 as! A).body) }
     bodyType = A.Body.self
+    walkClosure = { visitor, app in
+      var v = visitor
+      (app as! A).walk(&v)
+      visitor = v
+    }
+  }
+
+  public func walk<V: AppWalker>(_ visitor: inout V) {
+    var anyVisitor: any AppWalker = visitor
+    walkClosure(&anyVisitor, app)
+    visitor = anyVisitor as! V
   }
 
   @_spi(TokmakUI)

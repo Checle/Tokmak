@@ -7,9 +7,11 @@
 extern "C" {
 #endif
 
-// Define the platform we are targeting. 
-// In a real build system, this would be passed via CFLAGS (e.g. -DTOKMAK_PLATFORM_PICO=1)
-#define TOKMAK_PLATFORM_PICO 1
+// The target platform is selected by the build system when needed
+// (for example, with -DTOKMAK_PLATFORM_PICO=1).
+#ifndef TOKMAK_PLATFORM_PICO
+#define TOKMAK_PLATFORM_PICO 0
+#endif
 
 // E-Paper dimensions
 #define EPD_UC8253_WIDTH  240

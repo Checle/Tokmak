@@ -38,11 +38,11 @@ public struct _PaddingView<Content: View>: View, AnyLVGLWidget {
   func new(_ renderer: LVGLRenderer, _ parent: UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t> {
     let obj = lv_obj_create(parent)!
     
-    let defaultPadding: Int32 = 16
-    let top = Int32(insets?.top ?? CGFloat(defaultPadding))
-    let bottom = Int32(insets?.bottom ?? CGFloat(defaultPadding))
-    let leading = Int32(insets?.leading ?? CGFloat(defaultPadding))
-    let trailing = Int32(insets?.trailing ?? CGFloat(defaultPadding))
+    let defaultPadding: CGFloat = 16
+    let top = tokmakLVCoord(insets?.top ?? defaultPadding)
+    let bottom = tokmakLVCoord(insets?.bottom ?? defaultPadding)
+    let leading = tokmakLVCoord(insets?.leading ?? defaultPadding)
+    let trailing = tokmakLVCoord(insets?.trailing ?? defaultPadding)
 
     lv_obj_set_style_pad_all(obj, 0, UInt32(LV_PART_MAIN))
     if edges.contains(.top) { lv_obj_set_style_pad_top(obj, top, UInt32(LV_PART_MAIN)) }
@@ -50,8 +50,8 @@ public struct _PaddingView<Content: View>: View, AnyLVGLWidget {
     if edges.contains(.leading) { lv_obj_set_style_pad_left(obj, leading, UInt32(LV_PART_MAIN)) }
     if edges.contains(.trailing) { lv_obj_set_style_pad_right(obj, trailing, UInt32(LV_PART_MAIN)) }
 
-    lv_obj_set_width(obj, Int32(LV_SIZE_CONTENT))
-    lv_obj_set_height(obj, Int32(LV_SIZE_CONTENT))
+    lv_obj_set_width(obj, tokmakLVSizeContent)
+    lv_obj_set_height(obj, tokmakLVSizeContent)
     lv_obj_set_style_border_width(obj, 0, UInt32(LV_PART_MAIN))
     lv_obj_set_style_bg_opa(obj, 0, UInt32(LV_PART_MAIN))
 

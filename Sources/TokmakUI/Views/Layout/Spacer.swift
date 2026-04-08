@@ -14,7 +14,7 @@
 
 import CLVGL
 
-public struct Spacer: View, AnyLVGLWidget {
+public struct Spacer: _PrimitiveView, AnyLVGLWidget {
   public let minLength: CGFloat?
 
   public init(minLength: CGFloat? = nil) {

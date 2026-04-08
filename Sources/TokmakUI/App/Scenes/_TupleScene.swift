@@ -26,16 +26,85 @@ public struct _TupleScene<T>: Scene {
 
   public func walk<V: SceneWalker>(_ visitor: inout V) {
     visitor.visit(self)
-    // In a full implementation, we would reflect over the tuple and walk each scene.
-    // For a minimal app, we might not need this to do much yet.
+    walkTupleScenes(scenes, &visitor)
   }
 }
 
 extension _TupleScene: ParentScene {
   public var children: [_AnyScene] {
-    // This is a bit complex to implement without reflection. 
-    // For a minimal Hello World, we might be able to get away with an empty list 
-    // or a simple manual implementation for 2-element tuples if needed.
     []
+  }
+}
+
+private func walkTupleScenes<V: SceneWalker, T>(_ scenes: T, _ visitor: inout V) {
+  if let scenes = scenes as? (any Scene, any Scene) {
+    walkAnyScene(scenes.0, &visitor)
+    walkAnyScene(scenes.1, &visitor)
+  } else if let scenes = scenes as? (any Scene, any Scene, any Scene) {
+    walkAnyScene(scenes.0, &visitor)
+    walkAnyScene(scenes.1, &visitor)
+    walkAnyScene(scenes.2, &visitor)
+  } else if let scenes = scenes as? (any Scene, any Scene, any Scene, any Scene) {
+    walkAnyScene(scenes.0, &visitor)
+    walkAnyScene(scenes.1, &visitor)
+    walkAnyScene(scenes.2, &visitor)
+    walkAnyScene(scenes.3, &visitor)
+  } else if let scenes = scenes as? (any Scene, any Scene, any Scene, any Scene, any Scene) {
+    walkAnyScene(scenes.0, &visitor)
+    walkAnyScene(scenes.1, &visitor)
+    walkAnyScene(scenes.2, &visitor)
+    walkAnyScene(scenes.3, &visitor)
+    walkAnyScene(scenes.4, &visitor)
+  } else if let scenes = scenes as? (any Scene, any Scene, any Scene, any Scene, any Scene, any Scene) {
+    walkAnyScene(scenes.0, &visitor)
+    walkAnyScene(scenes.1, &visitor)
+    walkAnyScene(scenes.2, &visitor)
+    walkAnyScene(scenes.3, &visitor)
+    walkAnyScene(scenes.4, &visitor)
+    walkAnyScene(scenes.5, &visitor)
+  } else if let scenes = scenes as? (any Scene, any Scene, any Scene, any Scene, any Scene, any Scene, any Scene) {
+    walkAnyScene(scenes.0, &visitor)
+    walkAnyScene(scenes.1, &visitor)
+    walkAnyScene(scenes.2, &visitor)
+    walkAnyScene(scenes.3, &visitor)
+    walkAnyScene(scenes.4, &visitor)
+    walkAnyScene(scenes.5, &visitor)
+    walkAnyScene(scenes.6, &visitor)
+  } else if let scenes = scenes as? (any Scene, any Scene, any Scene, any Scene, any Scene, any Scene, any Scene, any Scene) {
+    walkAnyScene(scenes.0, &visitor)
+    walkAnyScene(scenes.1, &visitor)
+    walkAnyScene(scenes.2, &visitor)
+    walkAnyScene(scenes.3, &visitor)
+    walkAnyScene(scenes.4, &visitor)
+    walkAnyScene(scenes.5, &visitor)
+    walkAnyScene(scenes.6, &visitor)
+    walkAnyScene(scenes.7, &visitor)
+  } else if let scenes = scenes as? (any Scene, any Scene, any Scene, any Scene, any Scene, any Scene, any Scene, any Scene, any Scene) {
+    walkAnyScene(scenes.0, &visitor)
+    walkAnyScene(scenes.1, &visitor)
+    walkAnyScene(scenes.2, &visitor)
+    walkAnyScene(scenes.3, &visitor)
+    walkAnyScene(scenes.4, &visitor)
+    walkAnyScene(scenes.5, &visitor)
+    walkAnyScene(scenes.6, &visitor)
+    walkAnyScene(scenes.7, &visitor)
+    walkAnyScene(scenes.8, &visitor)
+  } else if let scenes = scenes as? (any Scene, any Scene, any Scene, any Scene, any Scene, any Scene, any Scene, any Scene, any Scene, any Scene) {
+    walkAnyScene(scenes.0, &visitor)
+    walkAnyScene(scenes.1, &visitor)
+    walkAnyScene(scenes.2, &visitor)
+    walkAnyScene(scenes.3, &visitor)
+    walkAnyScene(scenes.4, &visitor)
+    walkAnyScene(scenes.5, &visitor)
+    walkAnyScene(scenes.6, &visitor)
+    walkAnyScene(scenes.7, &visitor)
+    walkAnyScene(scenes.8, &visitor)
+    walkAnyScene(scenes.9, &visitor)
+  }
+}
+
+private func walkAnyScene<V: SceneWalker>(_ scene: Any, _ visitor: inout V) {
+  if let scene = scene as? any Scene {
+    scene.walk(&visitor)
   }
 }

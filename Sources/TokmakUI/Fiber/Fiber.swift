@@ -21,6 +21,7 @@ public protocol AnyFiber: AnyObject {
   
   /// The renderer's target (e.g., `UnsafeMutablePointer<lv_obj_t>`)
   var target: UnsafeMutableRawPointer? { get set }
+  var ownsTarget: Bool { get set }
   
   /// The index of this fiber in the parent's list of children.
   var index: Int { get set }
@@ -28,7 +29,8 @@ public protocol AnyFiber: AnyObject {
   /// The values of state stored in this fiber.
   var stateValues: [Any] { get set }
 
-  func makeChild<T>(_ type: T.Type, at index: Int) -> Fiber<T>
+  func reconcileChild<T>(_ type: T.Type, at index: Int) -> (fiber: Fiber<T>, replaced: (any AnyFiber)?)
+  func pruneChildren(after index: Int) -> [(any AnyFiber)]
 }
 
 /// A generic node in the persistent tree that knows its type.
@@ -38,6 +40,7 @@ public final class Fiber<T>: AnyFiber {
   public var sibling: (any AnyFiber)?
   
   public var target: UnsafeMutableRawPointer?
+  public var ownsTarget: Bool = false
   public var index: Int = 0
   
   /// The values of state stored in this fiber.
@@ -49,28 +52,87 @@ public final class Fiber<T>: AnyFiber {
   
   public init() {}
 
-  public func makeChild<Child>(_ type: Child.Type, at index: Int) -> Fiber<Child> {
-    if let child = self.child as? Fiber<Child>, child.index == index {
-      return child
+  public func reconcileChild<Child>(_ type: Child.Type, at index: Int) -> (fiber: Fiber<Child>, replaced: (any AnyFiber)?) {
+    var previous: (any AnyFiber)?
+    var current = child
+
+    while let fiber = current, fiber.index < index {
+      previous = fiber
+      current = fiber.sibling
+    }
+
+    if let fiber = current, fiber.index == index {
+      if let typedFiber = fiber as? Fiber<Child> {
+        return (typedFiber, nil)
+      }
+
+      let replacement = Fiber<Child>()
+      replacement.parent = self
+      replacement.index = index
+      replacement.sibling = fiber.sibling
+
+      if let previous {
+        previous.sibling = replacement
+      } else {
+        child = replacement
+      }
+
+      fiber.sibling = nil
+      return (replacement, fiber)
     }
 
     let newChild = Fiber<Child>()
     newChild.parent = self
     newChild.index = index
 
-    if index == 0 {
-      newChild.sibling = self.child?.sibling
-      self.child = newChild
+    if let previous {
+      newChild.sibling = previous.sibling
+      previous.sibling = newChild
     } else {
-      // Find the sibling at index - 1
-      var current = self.child
-      while let c = current, c.index < index - 1 {
-        current = c.sibling
-      }
-      newChild.sibling = current?.sibling
-      current?.sibling = newChild
+      newChild.sibling = child
+      child = newChild
     }
 
-    return newChild
+    return (newChild, nil)
+  }
+
+  public func pruneChildren(after index: Int) -> [(any AnyFiber)] {
+    guard let firstChild = child else {
+      return []
+    }
+
+    if index < 0 {
+      child = nil
+      return collectSiblings(startingAt: firstChild)
+    }
+
+    var kept: (any AnyFiber)? = nil
+    var current: (any AnyFiber)? = firstChild
+
+    while let fiber = current, fiber.index <= index {
+      kept = fiber
+      current = fiber.sibling
+    }
+
+    kept?.sibling = nil
+    if kept == nil {
+      child = nil
+    }
+
+    return current.map { collectSiblings(startingAt: $0) } ?? []
+  }
+
+  private func collectSiblings(startingAt fiber: any AnyFiber) -> [(any AnyFiber)] {
+    var collected: [(any AnyFiber)] = []
+    var current: (any AnyFiber)? = fiber
+
+    while let item = current {
+      let next = item.sibling
+      item.sibling = nil
+      collected.append(item)
+      current = next
+    }
+
+    return collected
   }
 }

@@ -21,6 +21,61 @@ public enum SceneBuilder {
   public static func buildBlock<Content: Scene>(_ content: Content) -> some Scene {
     content
   }
+
+  public static func buildIf<Content>(_ content: Content?) -> Content? where Content: Scene {
+    content
+  }
+
+  public static func buildEither<TrueContent, FalseContent>(
+    first: TrueContent
+  ) -> _ConditionalScene<TrueContent, FalseContent> where TrueContent: Scene, FalseContent: Scene {
+    .init(storage: .trueContent(first))
+  }
+
+  public static func buildEither<TrueContent, FalseContent>(
+    second: FalseContent
+  ) -> _ConditionalScene<TrueContent, FalseContent> where TrueContent: Scene, FalseContent: Scene {
+    .init(storage: .falseContent(second))
+  }
+}
+
+public struct _ConditionalScene<TrueContent, FalseContent>: Scene
+  where TrueContent: Scene, FalseContent: Scene
+{
+  enum Storage {
+    case trueContent(TrueContent)
+    case falseContent(FalseContent)
+  }
+
+  let storage: Storage
+
+  public var body: Never {
+    neverScene("_ConditionalScene")
+  }
+
+  public func walk<V: SceneWalker>(_ visitor: inout V) {
+    switch storage {
+    case let .trueContent(scene):
+      scene.walk(&visitor)
+    case let .falseContent(scene):
+      scene.walk(&visitor)
+    }
+  }
+}
+
+extension Optional: Scene where Wrapped: Scene {
+  public var body: Never {
+    neverScene("Optional<Scene>")
+  }
+
+  public func walk<V: SceneWalker>(_ visitor: inout V) {
+    switch self {
+    case .none:
+      break
+    case let .some(scene):
+      scene.walk(&visitor)
+    }
+  }
 }
 
 // swiftlint:disable large_tuple

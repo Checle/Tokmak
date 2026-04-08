@@ -50,7 +50,7 @@ public extension App {
         // 2. Setup LVGL Input Driver (Mouse/Touch emulation)
         let indevDrv = UnsafeMutablePointer<lv_indev_drv_t>.allocate(capacity: 1)
         lv_indev_drv_init(indevDrv)
-        indevDrv.pointee.type = UInt8(LV_INDEV_TYPE_POINTER)
+        indevDrv.pointee.type = LV_INDEV_TYPE_POINTER
         indevDrv.pointee.read_cb = tokmak_sdl_mouse_read
         lv_indev_drv_register(indevDrv)
         

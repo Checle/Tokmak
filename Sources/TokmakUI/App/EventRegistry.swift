@@ -33,6 +33,7 @@ struct EventRegistry {
     static func register(obj: UnsafeMutablePointer<lv_obj_t>, action: @escaping () -> Void) {
         let box = ActionBox(action: action)
         actions[UnsafeMutableRawPointer(obj)] = box
+        lv_obj_add_event_cb(obj, tokmak_lvgl_event_handler, LV_EVENT_ALL, nil)
     }
     
     static func unregister(obj: UnsafeMutablePointer<lv_obj_t>) {
@@ -47,10 +48,13 @@ func tokmak_lvgl_event_handler(e: UnsafeMutablePointer<lv_event_t>?) {
     let obj = lv_event_get_target(e)
     let code = lv_event_get_code(e)
     
-    // Check if the event is a click and we have a registered action
     if code == LV_EVENT_CLICKED {
         if let obj = obj, let box = EventRegistry.actions[UnsafeMutableRawPointer(obj)] {
             box.action()
+        }
+    } else if code == LV_EVENT_DELETE {
+        if let obj = obj {
+            EventRegistry.unregister(obj: obj)
         }
     }
 }

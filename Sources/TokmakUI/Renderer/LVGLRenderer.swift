@@ -46,16 +46,20 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
     let originalIndex = childIndex
     let originalPropertyIndex = dynamicPropertyIndex
     
-    currentFiber = currentFiber?.makeChild(A.self, at: childIndex)
+    let entry = currentFiber?.reconcileChild(A.self, at: childIndex)
+    currentFiber = entry?.fiber
     childIndex = 0
     dynamicPropertyIndex = 0
     
     var app = app
     app.visitProperties(&self)
-    
-    // Apps are transparent, continue to body
     app.body.walk(&self)
-    
+
+    renderer.cleanup(entry?.replaced)
+    if let currentFiber {
+      renderer.cleanup(currentFiber.pruneChildren(after: childIndex - 1))
+    }
+
     currentFiber = originalFiber
     childIndex = originalIndex + 1
     dynamicPropertyIndex = originalPropertyIndex
@@ -66,16 +70,23 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
     let originalIndex = childIndex
     let originalPropertyIndex = dynamicPropertyIndex
     
-    currentFiber = currentFiber?.makeChild(S.self, at: childIndex)
+    let entry = currentFiber?.reconcileChild(S.self, at: childIndex)
+    currentFiber = entry?.fiber
     childIndex = 0
     dynamicPropertyIndex = 0
     
     var scene = scene
     scene.visitProperties(&self)
-    
-    // Scenes are transparent, continue to body
-    scene.body.walk(&self)
-    
+
+    if S.Body.self != Never.self {
+      scene.body.walk(&self)
+    }
+
+    renderer.cleanup(entry?.replaced)
+    if let currentFiber {
+      renderer.cleanup(currentFiber.pruneChildren(after: childIndex - 1))
+    }
+
     currentFiber = originalFiber
     childIndex = originalIndex + 1
     dynamicPropertyIndex = originalPropertyIndex
@@ -86,7 +97,8 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
     let originalIndex = childIndex
     let originalPropertyIndex = dynamicPropertyIndex
     
-    let fiber = currentFiber?.makeChild(V.self, at: childIndex)
+    let entry = currentFiber?.reconcileChild(V.self, at: childIndex)
+    let fiber = entry?.fiber
     currentFiber = fiber
     childIndex = 0
     dynamicPropertyIndex = 0
@@ -113,11 +125,14 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
         let proxy = _TextProxy(text)
         proxy.rawText.withCString { lv_label_set_text(label, $0) }
         target = label
+        fiber?.ownsTarget = true
       } else if let widget = view as? any AnyLVGLWidget {
         target = widget.new(renderer, parent)
+        fiber?.ownsTarget = true
       } else {
         // Fallback for non-primitives that are visited
         target = parent
+        fiber?.ownsTarget = false
       }
       
       // Store in fiber if we have one
@@ -131,6 +146,11 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
       parent = target
       view.body.walk(&self)
       parent = originalParent
+    }
+
+    renderer.cleanup(entry?.replaced)
+    if let fiber {
+      renderer.cleanup(fiber.pruneChildren(after: childIndex - 1))
     }
     
     currentFiber = originalFiber
@@ -161,12 +181,48 @@ public final class LVGLRenderer {
     
     var visitor = LVGLVisitor(parent: screen, renderer: self, rootFiber: rootFiber)
     app.walk(&visitor)
+    if let rootFiber {
+      cleanup(rootFiber.pruneChildren(after: 0))
+    }
   }
 
   public func requestRedraw() {
     guard let rootApp = rootApp else { return }
     var visitor = LVGLVisitor(parent: screen, renderer: self, rootFiber: rootFiber)
     rootApp.walk(&visitor)
+    if let rootFiber {
+      cleanup(rootFiber.pruneChildren(after: 0))
+    }
     lv_refr_now(nil)
+  }
+
+  func cleanup(_ fiber: (any AnyFiber)?) {
+    guard let fiber else { return }
+    cleanup([fiber])
+  }
+
+  func cleanup(_ fibers: [(any AnyFiber)]) {
+    for fiber in fibers {
+      cleanupSubtree(fiber)
+    }
+  }
+
+  private func cleanupSubtree(_ fiber: any AnyFiber) {
+    var child = fiber.child
+    while let currentChild = child {
+      let nextSibling = currentChild.sibling
+      cleanupSubtree(currentChild)
+      child = nextSibling
+    }
+
+    if fiber.ownsTarget, let target = fiber.target {
+      lv_obj_del(target.assumingMemoryBound(to: lv_obj_t.self))
+    }
+
+    fiber.child = nil
+    fiber.sibling = nil
+    fiber.target = nil
+    fiber.ownsTarget = false
+    fiber.stateValues.removeAll()
   }
 }

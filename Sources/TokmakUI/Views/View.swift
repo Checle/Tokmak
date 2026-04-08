@@ -47,7 +47,7 @@ public protocol View {
 
 public extension View {
   func walk<V: ViewWalker>(_ visitor: inout V) {
-    body.walk(&visitor)
+    visitor.visit(self)
   }
 
   mutating func visitProperties<V: PropertyVisitor>(_ visitor: inout V) {}

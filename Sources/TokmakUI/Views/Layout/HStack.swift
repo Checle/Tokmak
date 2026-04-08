@@ -25,8 +25,8 @@ public struct HStack<Content: View>: View, AnyLVGLWidget {
 
   func new(_ renderer: LVGLRenderer, _ parent: UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t> {
     let obj = lv_obj_create(parent)!
-    lv_obj_set_layout(obj, UInt16(LV_LAYOUT_FLEX))
-    lv_flex_set_flow(obj, UInt8(LV_FLEX_FLOW_ROW))
+    lv_obj_set_layout(obj, tokmakLVLayout(LV_LAYOUT_FLEX))
+    lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW)
     
     // Clear LVGL default styling to match SwiftUI
     lv_obj_set_style_pad_all(obj, 0, UInt32(LV_PART_MAIN))

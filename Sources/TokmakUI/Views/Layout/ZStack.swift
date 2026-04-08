@@ -37,17 +37,16 @@ public struct ZStack<Content: View>: View, AnyLVGLWidget {
     
     // Using grid to overlay children in the same cell.
     // In LVGL, grid with 1 row 1 col will place everything in that cell, stacking them.
-    let col_dsc = UnsafeMutablePointer<Int32>.allocate(capacity: 2)
-    col_dsc[0] = LV_GRID_FR(1)
-    col_dsc[1] = LV_GRID_TEMPLATE_LAST
+    let col_dsc = UnsafeMutablePointer<lv_coord_t>.allocate(capacity: 2)
+    col_dsc[0] = tokmakLVGridFraction(1)
+    col_dsc[1] = tokmakLVGridTemplateLast
     
-    let row_dsc = UnsafeMutablePointer<Int32>.allocate(capacity: 2)
-    row_dsc[0] = LV_GRID_FR(1)
-    row_dsc[1] = LV_GRID_TEMPLATE_LAST
+    let row_dsc = UnsafeMutablePointer<lv_coord_t>.allocate(capacity: 2)
+    row_dsc[0] = tokmakLVGridFraction(1)
+    row_dsc[1] = tokmakLVGridTemplateLast
 
-    lv_obj_set_style_grid_column_dsc_array(obj, col_dsc, 0)
-    lv_obj_set_style_grid_row_dsc_array(obj, row_dsc, 0)
-    lv_obj_set_layout(obj, UInt16(LV_LAYOUT_GRID))
+    lv_obj_set_grid_dsc_array(obj, col_dsc, row_dsc)
+    lv_obj_set_layout(obj, tokmakLVLayout(LV_LAYOUT_GRID))
 
     return obj
   }

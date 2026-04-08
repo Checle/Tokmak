@@ -35,7 +35,7 @@ public protocol Scene {
 
 public extension Scene {
   func walk<V: SceneWalker>(_ visitor: inout V) {
-    body.walk(&visitor)
+    visitor.visit(self)
   }
 
   mutating func visitProperties<V: PropertyVisitor>(_ visitor: inout V) {}

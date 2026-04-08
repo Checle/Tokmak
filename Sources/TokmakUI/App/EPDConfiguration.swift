@@ -14,6 +14,7 @@
 
 import CLVGL
 
+#if TOKMAK_PLATFORM_PICO
 public extension App {
     
     /// The primary entry point for E-Paper applications using the GDEY037T03.
@@ -79,8 +80,4 @@ public extension App {
         main(display: config)
     }
 }
-
 #endif
-play: config)
-    }
-}

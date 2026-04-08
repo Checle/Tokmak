@@ -29,9 +29,9 @@ public struct Button<Label: View>: View, AnyLVGLWidget {
     let obj = lv_btn_create(parent)!
     
     // Default styling for a button. In standard LVGL, buttons wrap their content.
-    lv_obj_set_layout(obj, UInt16(LV_LAYOUT_FLEX))
-    lv_flex_set_flow(obj, UInt8(LV_FLEX_FLOW_ROW))
-    lv_flex_set_align(obj, UInt8(LV_FLEX_ALIGN_CENTER), UInt8(LV_FLEX_ALIGN_CENTER), UInt8(LV_FLEX_ALIGN_CENTER))
+    lv_obj_set_layout(obj, tokmakLVLayout(LV_LAYOUT_FLEX))
+    lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW)
+    lv_obj_set_flex_align(obj, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER)
     
     // Clear LVGL default padding to match SwiftUI more closely, though buttons often have SOME padding.
     // Let's leave a small padding to mimic a standard button.
@@ -40,16 +40,12 @@ public struct Button<Label: View>: View, AnyLVGLWidget {
     // Register the action in our global registry
     EventRegistry.register(obj: obj, action: action)
     
-    // Attach the C-level callback. 
-    // We cannot use a capturing Swift closure directly, so we use a @_cdecl C function.
-    lv_obj_add_event_cb(obj, tokmak_lvgl_event_handler, LV_EVENT_CLICKED, nil)
-    
     return obj
   }
 }
 
 public extension Button where Label == Text {
-  init(_ title: StringProtocol, action: @escaping () -> Void) {
+  init<S>(_ title: S, action: @escaping () -> Void) where S: StringProtocol {
     self.init(action: action) { Text(title) }
   }
 }
