@@ -95,11 +95,7 @@ public extension Color {
 
 extension Color: CustomStringConvertible {
   public var description: String {
-    if let providerDescription = provider as? CustomStringConvertible {
-      return providerDescription.description
-    } else {
-      return "Color: \(provider.self)"
-    }
+    "Color"
   }
 }
 

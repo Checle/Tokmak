@@ -14,19 +14,48 @@
 
 import CLVGL
 
+public struct TokmakIdentityKey: Hashable {
+  private enum Storage: Hashable {
+    case int(Int)
+    case uint(UInt)
+    case string(String)
+    case bool(Bool)
+    case raw(valueHash: Int)
+  }
+
+  private let storage: Storage
+
+  init<ID: Hashable>(_ value: ID) {
+    if let value = value as? Int {
+      storage = .int(value)
+    } else if let value = value as? UInt {
+      storage = .uint(value)
+    } else if let value = value as? String {
+      storage = .string(value)
+    } else if let value = value as? Bool {
+      storage = .bool(value)
+    } else {
+      var valueHasher = Hasher()
+      value.hash(into: &valueHasher)
+
+      storage = .raw(valueHash: valueHasher.finalize())
+    }
+  }
+}
+
 protocol ScrollTargetView {
-  var scrollTargetID: AnyHashable { get }
+  var scrollTargetID: TokmakIdentityKey { get }
 }
 
 protocol ReconciliationIdentityView {
-  var reconciliationIdentity: AnyHashable { get }
+  var reconciliationIdentity: TokmakIdentityKey { get }
 }
 
 struct _IdentifiedView<Content: View>: View, AnyLVGLWidget, ScrollTargetView, ReconciliationIdentityView {
   let content: Content
-  let scrollTargetID: AnyHashable
+  let scrollTargetID: TokmakIdentityKey
 
-  var reconciliationIdentity: AnyHashable {
+  var reconciliationIdentity: TokmakIdentityKey {
     scrollTargetID
   }
 
@@ -48,6 +77,6 @@ struct _IdentifiedView<Content: View>: View, AnyLVGLWidget, ScrollTargetView, Re
 
 public extension View {
   func id<ID>(_ id: ID) -> some View where ID: Hashable {
-    _IdentifiedView(content: self, scrollTargetID: AnyHashable(id))
+    _IdentifiedView(content: self, scrollTargetID: TokmakIdentityKey(id))
   }
 }

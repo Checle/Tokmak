@@ -18,21 +18,8 @@ public enum ColorScheme: CaseIterable, Equatable {
   case light
 }
 
-public struct _ColorSchemeKey: EnvironmentKey {
-  public static var defaultValue: ColorScheme {
-    fatalError("\(self) must have a renderer-provided default value")
-  }
-}
-
-public extension EnvironmentValues {
-  var colorScheme: ColorScheme {
-    get { self[_ColorSchemeKey.self] }
-    set { self[_ColorSchemeKey.self] = newValue }
-  }
-}
-
 public extension View {
   func colorScheme(_ colorScheme: ColorScheme) -> some View {
-    environment(\.colorScheme, colorScheme)
+    transformEnvironment { $0.colorScheme = colorScheme }
   }
 }

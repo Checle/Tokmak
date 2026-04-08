@@ -13,52 +13,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// A protocol for the persistent tree nodes in the static path.
-public protocol AnyFiber: AnyObject {
-  var child: (any AnyFiber)? { get set }
-  var sibling: (any AnyFiber)? { get set }
-  
-  /// The renderer's target (e.g., `UnsafeMutablePointer<lv_obj_t>`)
-  var target: UnsafeMutableRawPointer? { get set }
-  var ownsTarget: Bool { get set }
-  
-  /// The index of this fiber in the parent's list of children.
-  var index: Int { get set }
-  var reconciliationIdentity: AnyHashable? { get set }
-
-  /// The values of state stored in this fiber.
-  var stateValues: [Any] { get set }
-  var scrollTargetIDs: [AnyHashable] { get set }
-
-  func reconcileChild<T>(_ type: T.Type, at index: Int, identity: AnyHashable?) -> (fiber: Fiber<T>, replaced: (any AnyFiber)?)
-  func pruneChildren(after index: Int) -> [(any AnyFiber)]
-}
-
-/// A generic node in the persistent tree that knows its type.
-public final class Fiber<T>: AnyFiber {
-  public var child: (any AnyFiber)?
-  public var sibling: (any AnyFiber)?
+/// A persistent tree node in the static path.
+public class FiberNode {
+  public var child: FiberNode?
+  public var sibling: FiberNode?
   
   public var target: UnsafeMutableRawPointer?
   public var ownsTarget: Bool = false
   public var index: Int = 0
-  public var reconciliationIdentity: AnyHashable?
+  public var reconciliationIdentity: TokmakIdentityKey?
   
   /// The values of state stored in this fiber.
   public var stateValues: [Any] = []
-  public var scrollTargetIDs: [AnyHashable] = []
+  public var scrollTargetIDs: [TokmakIdentityKey] = []
   
   /// The current state stored in this fiber.
   /// (Placeholder for future state implementation)
   public var state: Any?
-  
+
   public init() {}
 
-  public func reconcileChild<Child>(
+  public final func reconcileChild<Child>(
     _ type: Child.Type,
     at index: Int,
-    identity: AnyHashable? = nil
-  ) -> (fiber: Fiber<Child>, replaced: (any AnyFiber)?) {
+    identity: TokmakIdentityKey? = nil
+  ) -> (fiber: Fiber<Child>, replaced: FiberNode?) {
     if let identity, let matched = findChild(with: identity) {
       if let typedFiber = matched.fiber as? Fiber<Child> {
         detachChild(matched.fiber, previous: matched.previous)
@@ -77,7 +56,7 @@ public final class Fiber<T>: AnyFiber {
       return (replacement, matched.fiber)
     }
 
-    var previous: (any AnyFiber)?
+    var previous: FiberNode?
     var current = child
 
     while let fiber = current, fiber.index < index {
@@ -121,7 +100,7 @@ public final class Fiber<T>: AnyFiber {
     return (newChild, nil)
   }
 
-  public func pruneChildren(after index: Int) -> [(any AnyFiber)] {
+  public func pruneChildren(after index: Int) -> [FiberNode] {
     guard let firstChild = child else {
       return []
     }
@@ -131,8 +110,8 @@ public final class Fiber<T>: AnyFiber {
       return collectSiblings(startingAt: firstChild)
     }
 
-    var kept: (any AnyFiber)? = nil
-    var current: (any AnyFiber)? = firstChild
+    var kept: FiberNode? = nil
+    var current: FiberNode? = firstChild
 
     while let fiber = current, fiber.index <= index {
       kept = fiber
@@ -147,9 +126,9 @@ public final class Fiber<T>: AnyFiber {
     return current.map { collectSiblings(startingAt: $0) } ?? []
   }
 
-  private func collectSiblings(startingAt fiber: any AnyFiber) -> [(any AnyFiber)] {
-    var collected: [(any AnyFiber)] = []
-    var current: (any AnyFiber)? = fiber
+  private func collectSiblings(startingAt fiber: FiberNode) -> [FiberNode] {
+    var collected: [FiberNode] = []
+    var current: FiberNode? = fiber
 
     while let item = current {
       let next = item.sibling
@@ -161,8 +140,8 @@ public final class Fiber<T>: AnyFiber {
     return collected
   }
 
-  private func findChild(with identity: AnyHashable) -> (previous: (any AnyFiber)?, fiber: any AnyFiber)? {
-    var previous: (any AnyFiber)?
+  private func findChild(with identity: TokmakIdentityKey) -> (previous: FiberNode?, fiber: FiberNode)? {
+    var previous: FiberNode?
     var current = child
 
     while let fiber = current {
@@ -176,19 +155,19 @@ public final class Fiber<T>: AnyFiber {
     return nil
   }
 
-  private func detachChild(_ target: any AnyFiber, previous: (any AnyFiber)?) {
+  private func detachChild(_ target: FiberNode, previous: FiberNode?) {
     if let previous {
       previous.sibling = target.sibling
-    } else if child === target {
+    } else {
       child = target.sibling
     }
     target.sibling = nil
   }
 
-  private func insertChild(_ target: any AnyFiber, at index: Int) {
+  private func insertChild(_ target: FiberNode, at index: Int) {
     target.index = index
 
-    var previous: (any AnyFiber)?
+    var previous: FiberNode?
     var current = child
 
     while let fiber = current, fiber.index < index {
@@ -205,3 +184,6 @@ public final class Fiber<T>: AnyFiber {
     }
   }
 }
+
+/// A generic node in the persistent tree that knows its type.
+public final class Fiber<T>: FiberNode {}

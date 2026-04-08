@@ -17,6 +17,30 @@
 //
 
 /// A type-erased view.
+#if hasFeature(Embedded)
+public struct AnyView: _PrimitiveView {
+  public init<V>(_ view: V) where V: View {}
+
+  public func walk<V: ViewWalker>(_ visitor: inout V) {
+    fatalError("AnyView is unavailable in embedded builds.")
+  }
+}
+
+public func mapAnyView<T, V>(_ anyView: AnyView, transform: (V) -> T) -> T? {
+  nil
+}
+
+extension AnyView: ParentView {
+  @_spi(TokmakUI)
+  public var children: [AnyView] { [] }
+}
+
+public struct _AnyViewProxy {
+  public var subject: AnyView
+
+  public init(_ subject: AnyView) { self.subject = subject }
+}
+#else
 public struct AnyView: _PrimitiveView {
   /// The type of the underlying `view`.
   let type: Any.Type
@@ -72,3 +96,4 @@ public struct _AnyViewProxy {
   public var type: Any.Type { subject.type }
   public var view: Any { subject.view }
 }
+#endif

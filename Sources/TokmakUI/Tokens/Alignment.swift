@@ -16,84 +16,74 @@
 //  Created by Carson Katri on 2/18/22.
 //
 
+private enum HorizontalAlignmentID: Int {
+  case leading = 1
+  case center = 2
+  case trailing = 3
 
-public protocol AlignmentID {
-  static func defaultValue(in context: ViewDimensions) -> CGFloat
+  func defaultValue(in context: ViewDimensions) -> CGFloat {
+    switch self {
+    case .leading:
+      return 0
+    case .center:
+      return context.width / 2
+    case .trailing:
+      return context.width
+    }
+  }
 }
 
-@frozen
+private enum VerticalAlignmentID: Int {
+  case top = 4
+  case center = 5
+  case bottom = 6
+
+  func defaultValue(in context: ViewDimensions) -> CGFloat {
+    switch self {
+    case .top:
+      return 0
+    case .center:
+      return context.height / 2
+    case .bottom:
+      return context.height
+    }
+  }
+}
+
 public struct HorizontalAlignment: Equatable {
   public static func == (lhs: Self, rhs: Self) -> Bool {
     lhs.id == rhs.id
   }
 
-  let id: AlignmentID.Type
+  fileprivate let id: HorizontalAlignmentID
 
-  public init(_ id: AlignmentID.Type) {
+  private init(_ id: HorizontalAlignmentID) {
     self.id = id
   }
 }
 
 extension HorizontalAlignment {
-  public static let leading = Self(Leading.self)
-
-  private enum Leading: AlignmentID {
-    static func defaultValue(in context: ViewDimensions) -> CGFloat {
-      0
-    }
-  }
-
-  public static let center = Self(Center.self)
-
-  private enum Center: AlignmentID {
-    static func defaultValue(in context: ViewDimensions) -> CGFloat {
-      context.width / 2
-    }
-  }
-
-  public static let trailing = Self(Trailing.self)
-
-  private enum Trailing: AlignmentID {
-    static func defaultValue(in context: ViewDimensions) -> CGFloat {
-      context.width
-    }
-  }
+  public static let leading = Self(.leading)
+  public static let center = Self(.center)
+  public static let trailing = Self(.trailing)
 }
 
-@frozen
 public struct VerticalAlignment: Equatable {
   public static func == (lhs: Self, rhs: Self) -> Bool {
     lhs.id == rhs.id
   }
 
-  let id: AlignmentID.Type
+  fileprivate let id: VerticalAlignmentID
 
-  public init(_ id: AlignmentID.Type) {
+  private init(_ id: VerticalAlignmentID) {
     self.id = id
   }
 }
 
 extension VerticalAlignment {
-  public static let top = Self(Top.self)
-  private enum Top: AlignmentID {
-    static func defaultValue(in context: ViewDimensions) -> CGFloat {
-      0
-    }
-  }
-
-  public static let center = Self(Center.self)
-  private enum Center: AlignmentID {
-    static func defaultValue(in context: ViewDimensions) -> CGFloat {
-      context.height / 2
-    }
-  }
-
-  public static let bottom = Self(Bottom.self)
-  private enum Bottom: AlignmentID {
-    static func defaultValue(in context: ViewDimensions) -> CGFloat {
-      context.height
-    }
-  }
+  public static let top = Self(.top)
+  public static let center = Self(.center)
+  public static let bottom = Self(.bottom)
 }
 
 public struct Alignment: Equatable {
@@ -116,7 +106,7 @@ public struct Alignment: Equatable {
   public static let trailing = Self(horizontal: .trailing, vertical: .center)
   public static let bottomLeading = Self(horizontal: .leading, vertical: .bottom)
   public static let bottom = Self(horizontal: .center, vertical: .bottom)
-  public static let bottomTrailing = Self(horizontal: .trailing, vertical: .center)
+  public static let bottomTrailing = Self(horizontal: .trailing, vertical: .bottom)
 }
 
 public struct ViewDimensions: Equatable {
@@ -124,7 +114,7 @@ public struct ViewDimensions: Equatable {
   public let size: CGSize
 
   @_spi(TokmakUI)
-  public let alignmentGuides: [ObjectIdentifier: CGFloat]
+  public let alignmentGuides: [Int: CGFloat]
 
   public var width: CGFloat { size.width }
   public var height: CGFloat { size.height }
@@ -138,11 +128,11 @@ public struct ViewDimensions: Equatable {
   }
 
   public subscript(explicit guide: HorizontalAlignment) -> CGFloat? {
-    alignmentGuides[.init(guide.id)]
+    alignmentGuides[guide.id.rawValue]
   }
 
   public subscript(explicit guide: VerticalAlignment) -> CGFloat? {
-    alignmentGuides[.init(guide.id)]
+    alignmentGuides[guide.id.rawValue]
   }
 }
 

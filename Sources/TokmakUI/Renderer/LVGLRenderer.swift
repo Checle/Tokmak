@@ -19,11 +19,11 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
   var parent: UnsafeMutablePointer<lv_obj_t>
   let renderer: LVGLRenderer
   
-  var currentFiber: (any AnyFiber)?
+  var currentFiber: FiberNode?
   var childIndex: Int = 0
   var dynamicPropertyIndex: Int = 0
   
-  init(parent: UnsafeMutablePointer<lv_obj_t>, renderer: LVGLRenderer, rootFiber: (any AnyFiber)?) {
+  init(parent: UnsafeMutablePointer<lv_obj_t>, renderer: LVGLRenderer, rootFiber: FiberNode?) {
     self.parent = parent
     self.renderer = renderer
     self.currentFiber = rootFiber
@@ -178,9 +178,9 @@ public final class LVGLRenderer {
   
   let screen: UnsafeMutablePointer<lv_obj_t>
   
-  private var rootFiber: (any AnyFiber)?
-  private var rootApp: _AnyApp?
-  private var scrollTargets: [AnyHashable: UnsafeMutablePointer<lv_obj_t>] = [:]
+  private var rootFiber: FiberNode?
+  private var redraw: (() -> Void)?
+  private var scrollTargets: [TokmakIdentityKey: UnsafeMutablePointer<lv_obj_t>] = [:]
   
   public init() {
     self.screen = lv_scr_act()
@@ -190,11 +190,18 @@ public final class LVGLRenderer {
   }
   
   public func render<A: App>(_ app: A) {
-    self.rootApp = _AnyApp(app)
     if rootFiber == nil {
-      rootFiber = Fiber<A>()
+      rootFiber = FiberNode()
     }
-    
+
+    redraw = { [self] in
+      rerender(A())
+    }
+
+    rerender(app)
+  }
+
+  private func rerender<A: App>(_ app: A) {
     var visitor = LVGLVisitor(parent: screen, renderer: self, rootFiber: rootFiber)
     app.walk(&visitor)
     if let rootFiber {
@@ -203,19 +210,14 @@ public final class LVGLRenderer {
   }
 
   public func requestRedraw() {
-    guard let rootApp = rootApp else { return }
-    var visitor = LVGLVisitor(parent: screen, renderer: self, rootFiber: rootFiber)
-    rootApp.walk(&visitor)
-    if let rootFiber {
-      cleanup(rootFiber.pruneChildren(after: 0))
-    }
+    redraw?()
     lv_refr_now(nil)
   }
 
   func registerScrollTarget(
-    _ id: AnyHashable,
+    _ id: TokmakIdentityKey,
     target: UnsafeMutablePointer<lv_obj_t>,
-    fiber: any AnyFiber
+    fiber: FiberNode
   ) {
     if !fiber.scrollTargetIDs.contains(id) {
       fiber.scrollTargetIDs.append(id)
@@ -224,24 +226,24 @@ public final class LVGLRenderer {
   }
 
   public func scrollTo<ID>(_ id: ID) where ID: Hashable {
-    let key = AnyHashable(id)
+    let key = TokmakIdentityKey(id)
     guard let target = scrollTargets[key] else { return }
     lv_obj_scroll_to_view(target, LV_ANIM_OFF)
     lv_refr_now(nil)
   }
 
-  func cleanup(_ fiber: (any AnyFiber)?) {
+  func cleanup(_ fiber: FiberNode?) {
     guard let fiber else { return }
     cleanup([fiber])
   }
 
-  func cleanup(_ fibers: [(any AnyFiber)]) {
+  func cleanup(_ fibers: [FiberNode]) {
     for fiber in fibers {
       cleanupSubtree(fiber)
     }
   }
 
-  private func cleanupSubtree(_ fiber: any AnyFiber) {
+  private func cleanupSubtree(_ fiber: FiberNode) {
     var child = fiber.child
     while let currentChild = child {
       let nextSibling = currentChild.sibling

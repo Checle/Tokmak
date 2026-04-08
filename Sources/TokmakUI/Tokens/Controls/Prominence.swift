@@ -21,23 +21,8 @@ public enum Prominence: Hashable {
   case increased
 }
 
-extension EnvironmentValues {
-  private enum HeaderProminenceKey: EnvironmentKey {
-    static var defaultValue: Prominence = .standard
-  }
-
-  public var headerProminence: Prominence {
-    get {
-      self[HeaderProminenceKey.self]
-    }
-    set {
-      self[HeaderProminenceKey.self] = newValue
-    }
-  }
-}
-
 public extension View {
   func headerProminence(_ prominence: Prominence) -> some View {
-    environment(\.headerProminence, prominence)
+    transformEnvironment { $0.headerProminence = prominence }
   }
 }

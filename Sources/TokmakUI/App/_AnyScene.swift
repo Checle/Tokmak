@@ -16,6 +16,20 @@
 //  Created by Carson Katri on 7/19/20.
 //
 
+ #if hasFeature(Embedded)
+public struct _AnyScene: Scene {
+  init<S: Scene>(_ scene: S) {}
+
+  public func walk<V: SceneWalker>(_ visitor: inout V) {
+    fatalError("_AnyScene is unavailable in embedded builds.")
+  }
+
+  @_spi(TokmakUI)
+  public var body: Never {
+    neverScene("_AnyScene")
+  }
+}
+#else
 public struct _AnyScene: Scene {
   /// The actual `Scene` value wrapped within this `_AnyScene`.
   var scene: Any
@@ -50,3 +64,4 @@ public struct _AnyScene: Scene {
     neverScene("_AnyScene")
   }
 }
+#endif

@@ -22,24 +22,9 @@ public enum TextAlignment: Hashable, CaseIterable {
        trailing
 }
 
-extension EnvironmentValues {
-  private struct _MultilineTextAlignmentKey: EnvironmentKey {
-    static var defaultValue: TextAlignment = .leading
-  }
-
-  public var multilineTextAlignment: TextAlignment {
-    get {
-      self[_MultilineTextAlignmentKey.self]
-    }
-    set {
-      self[_MultilineTextAlignmentKey.self] = newValue
-    }
-  }
-}
-
 public extension View {
   @inlinable
   func multilineTextAlignment(_ alignment: TextAlignment) -> some View {
-    environment(\.multilineTextAlignment, alignment)
+    transformEnvironment { $0.multilineTextAlignment = alignment }
   }
 }

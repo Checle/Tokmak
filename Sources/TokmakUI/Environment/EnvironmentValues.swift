@@ -15,31 +15,26 @@
 
 public struct EnvironmentValues: CustomStringConvertible {
   public var description: String {
-    "EnvironmentValues: \(values.count)"
+    "EnvironmentValues"
   }
 
-  private var values: [ObjectIdentifier: Any] = [:]
+  public var isEnabled = true
+  public var measureText: (Text, ProposedViewSize, EnvironmentValues) -> CGSize = { _, _, _ in .zero }
+  public var colorScheme: ColorScheme = .light
+  public var accentColor: Color?
+  public var foregroundColor: Color?
+  public var controlSize: ControlSize = .regular
+  public var headerProminence: Prominence = .standard
+  public var fontPath: [Font] = []
+  public var layoutDirection: LayoutDirection = .leftToRight
+  public var multilineTextAlignment: TextAlignment = .leading
 
   public init() {}
-
-  public subscript<K>(key: K.Type) -> K.Value where K: EnvironmentKey {
-    get {
-      if let val = values[ObjectIdentifier(key)] as? K.Value {
-        return val
-      }
-      return K.defaultValue
-    }
-    set {
-      values[ObjectIdentifier(key)] = newValue
-    }
-  }
 
   @_spi(TokmakUI)
   public mutating func merge(_ other: Self?) {
     if let other = other {
-      values.merge(other.values) { _, new in
-        new
-      }
+      self = other
     }
   }
 
@@ -51,44 +46,28 @@ public struct EnvironmentValues: CustomStringConvertible {
   }
 }
 
-struct IsEnabledKey: EnvironmentKey {
-  static let defaultValue = true
-}
-
-public extension EnvironmentValues {
-  var isEnabled: Bool {
-    get {
-      self[IsEnabledKey.self]
-    }
-    set {
-      self[IsEnabledKey.self] = newValue
-    }
-  }
-
-  var measureText: (Text, ProposedViewSize, EnvironmentValues) -> CGSize {
-    get { self[MeasureTextKey.self] }
-    set { self[MeasureTextKey.self] = newValue }
-  }
-}
-
-struct MeasureTextKey: EnvironmentKey {
-  static let defaultValue: (Text, ProposedViewSize, EnvironmentValues) -> CGSize = { _, _, _ in .zero }
-}
-
 struct _EnvironmentValuesWritingModifier: ViewModifier, _EnvironmentModifier {
-  let environmentValues: EnvironmentValues
+  let transform: (inout EnvironmentValues) -> ()
 
   func body(content: Content) -> some View {
     content
   }
 
   func modifyEnvironment(_ values: inout EnvironmentValues) {
-    values = environmentValues
+    transform(&values)
   }
 }
 
 public extension View {
   func environmentValues(_ values: EnvironmentValues) -> some View {
-    modifier(_EnvironmentValuesWritingModifier(environmentValues: values))
+    modifier(_EnvironmentValuesWritingModifier {
+      $0 = values
+    })
+  }
+
+  func transformEnvironment(
+    _ transform: @escaping (inout EnvironmentValues) -> ()
+  ) -> some View {
+    modifier(_EnvironmentValuesWritingModifier(transform: transform))
   }
 }

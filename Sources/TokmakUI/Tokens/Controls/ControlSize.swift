@@ -23,26 +23,11 @@ public enum ControlSize: CaseIterable, Hashable {
   case large
 }
 
-extension EnvironmentValues {
-  private enum ControlSizeKey: EnvironmentKey {
-    static var defaultValue: ControlSize = .regular
-  }
-
-  public var controlSize: ControlSize {
-    get {
-      self[ControlSizeKey.self]
-    }
-    set {
-      self[ControlSizeKey.self] = newValue
-    }
-  }
-}
-
 public extension View {
   @inlinable
   func controlSize(
     _ controlSize: ControlSize
   ) -> some View {
-    environment(\.controlSize, controlSize)
+    transformEnvironment { $0.controlSize = controlSize }
   }
 }

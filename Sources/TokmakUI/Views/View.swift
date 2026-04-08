@@ -24,7 +24,7 @@ public protocol ViewWalker {
 
 /// A visitor that supports reconciliation by tracking current fibers.
 public protocol ReconciliationWalker: ViewWalker {
-  var currentFiber: (any AnyFiber)? { get set }
+  var currentFiber: FiberNode? { get set }
 }
 
 /// A visitor that can traverse the dynamic properties of a `View`.
@@ -70,7 +70,7 @@ public protocol _PrimitiveView: View where Body == Never {}
 public extension _PrimitiveView {
   @_spi(TokmakUI)
   var body: Never {
-    neverBody(String(reflecting: Self.self))
+    neverBody("PrimitiveView")
   }
 
   func walk<V: ViewWalker>(_ visitor: inout V) {

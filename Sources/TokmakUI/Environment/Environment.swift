@@ -24,6 +24,22 @@ protocol EnvironmentReader {
   mutating func setContent(from values: EnvironmentValues)
 }
 
+#if hasFeature(Embedded)
+@propertyWrapper
+public struct Environment<Value>: DynamicProperty {
+  private var value: Value
+
+  public init(wrappedValue: Value) {
+    self.value = wrappedValue
+  }
+
+  mutating func setContent(from values: EnvironmentValues) {}
+
+  public var wrappedValue: Value {
+    value
+  }
+}
+#else
 @propertyWrapper
 public struct Environment<Value>: DynamicProperty {
   enum Content {
@@ -52,5 +68,6 @@ public struct Environment<Value>: DynamicProperty {
     }
   }
 }
+#endif
 
 extension Environment: EnvironmentReader {}

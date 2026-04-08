@@ -33,9 +33,7 @@
 public struct Text: _PrimitiveView, Equatable {
   let storage: _Storage
   let modifiers: [_Modifier]
-
-  @Environment(\.self)
-  var environment
+  var environment = EnvironmentValues()
 
   public static func == (lhs: Text, rhs: Text) -> Bool {
     lhs.storage == rhs.storage
@@ -78,7 +76,7 @@ public struct Text: _PrimitiveView, Equatable {
   init(storage: _Storage, modifiers: [_Modifier] = []) {
     if case let .segmentedText(segments) = storage {
       self.storage = .segmentedText(segments.map {
-        ($0.0, modifiers + $0.1)
+        ($0.0, Text.mergedModifiers(prefix: modifiers, suffix: $0.1))
       })
     } else {
       self.storage = storage
@@ -100,7 +98,7 @@ public extension Text._Storage {
     switch self {
     case let .segmentedText(segments):
       return segments
-        .map(\.0.rawText)
+        .map { $0.0.rawText }
         .reduce("", +)
     case let .verbatim(text):
       return text
@@ -121,54 +119,70 @@ public struct _TextProxy {
   public var rawText: String { subject.storage.rawText }
 
   public var modifiers: [Text._Modifier] {
-    [
-      .font(subject.environment.font),
-      .color(subject.environment.foregroundColor),
-    ] + subject.modifiers
+    var modifiers: [Text._Modifier] = []
+    modifiers.reserveCapacity(subject.modifiers.count + 2)
+    modifiers.append(.font(subject.environment.font))
+    modifiers.append(.color(subject.environment.foregroundColor))
+    modifiers.append(contentsOf: subject.modifiers)
+    return modifiers
   }
 
   public var environment: EnvironmentValues { subject.environment }
 }
 
 public extension Text {
+  private static func appending(_ modifier: _Modifier, to modifiers: [_Modifier]) -> [_Modifier] {
+    var updated = modifiers
+    updated.append(modifier)
+    return updated
+  }
+
+  private static func mergedModifiers(prefix: [_Modifier], suffix: [_Modifier]) -> [_Modifier] {
+    var merged: [_Modifier] = []
+    merged.reserveCapacity(prefix.count + suffix.count)
+    merged.append(contentsOf: prefix)
+    merged.append(contentsOf: suffix)
+    return merged
+  }
+
   func font(_ font: Font?) -> Text {
-    .init(storage: storage, modifiers: modifiers + [.font(font)])
+    .init(storage: storage, modifiers: Self.appending(.font(font), to: modifiers))
   }
 
   func foregroundColor(_ color: Color?) -> Text {
-    .init(storage: storage, modifiers: modifiers + [.color(color)])
+    .init(storage: storage, modifiers: Self.appending(.color(color), to: modifiers))
   }
 
   func fontWeight(_ weight: Font.Weight?) -> Text {
-    .init(storage: storage, modifiers: modifiers + [.weight(weight)])
+    .init(storage: storage, modifiers: Self.appending(.weight(weight), to: modifiers))
   }
 
   func bold() -> Text {
-    .init(storage: storage, modifiers: modifiers + [.weight(.bold)])
+    .init(storage: storage, modifiers: Self.appending(.weight(.bold), to: modifiers))
   }
 
   func italic() -> Text {
-    .init(storage: storage, modifiers: modifiers + [.italic])
+    .init(storage: storage, modifiers: Self.appending(.italic, to: modifiers))
   }
 
   func strikethrough(_ active: Bool = true, color: Color? = nil) -> Text {
-    .init(storage: storage, modifiers: modifiers + [.strikethrough(active, color)])
+    .init(storage: storage, modifiers: Self.appending(.strikethrough(active, color), to: modifiers))
   }
 
   func underline(_ active: Bool = true, color: Color? = nil) -> Text {
-    .init(storage: storage, modifiers: modifiers + [.underline(active, color)])
+    .init(storage: storage, modifiers: Self.appending(.underline(active, color), to: modifiers))
   }
 
   func kerning(_ kerning: CGFloat) -> Text {
-    .init(storage: storage, modifiers: modifiers + [.kerning(kerning)])
+    .init(storage: storage, modifiers: Self.appending(.kerning(kerning), to: modifiers))
   }
 
   func tracking(_ tracking: CGFloat) -> Text {
-    .init(storage: storage, modifiers: modifiers + [.tracking(tracking)])
+    .init(storage: storage, modifiers: Self.appending(.tracking(tracking), to: modifiers))
   }
 
   func baselineOffset(_ baselineOffset: CGFloat) -> Text {
-    .init(storage: storage, modifiers: modifiers + [.baseline(baselineOffset)])
+    .init(storage: storage, modifiers: Self.appending(.baseline(baselineOffset), to: modifiers))
   }
 }
 

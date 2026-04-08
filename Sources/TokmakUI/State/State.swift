@@ -24,7 +24,7 @@ protocol WritableValueStorage: ValueStorage {
   var setter: ((Any, Transaction) -> ())? { get set }
 }
 public protocol StateProtocol {
-  mutating func _link(to fiber: any AnyFiber, at index: Int, redraw: @escaping () -> ())
+  mutating func _link(to fiber: FiberNode, at index: Int, redraw: @escaping () -> ())
 }
 
 @propertyWrapper
@@ -40,7 +40,7 @@ public struct State<Value>: DynamicProperty, StateProtocol {
     initialValue = value
   }
 
-  public mutating func _link(to fiber: any AnyFiber, at index: Int, redraw: @escaping () -> ()) {
+  public mutating func _link(to fiber: FiberNode, at index: Int, redraw: @escaping () -> ()) {
     // If the fiber doesn't have a value for this index, use the initial value.
     if fiber.stateValues.count <= index {
       while fiber.stateValues.count <= index {

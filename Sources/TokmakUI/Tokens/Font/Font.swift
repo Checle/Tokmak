@@ -161,18 +161,10 @@ public struct _FontProxy {
   }
 }
 
-enum FontPathKey: EnvironmentKey {
-  static let defaultValue: [Font] = []
-}
-
 public extension EnvironmentValues {
   var _fontPath: [Font] {
-    get {
-      self[FontPathKey.self]
-    }
-    set {
-      self[FontPathKey.self] = newValue
-    }
+    get { fontPath }
+    set { fontPath = newValue }
   }
 
   var font: Font? {
@@ -191,6 +183,6 @@ public extension EnvironmentValues {
 
 public extension View {
   func font(_ font: Font?) -> some View {
-    environment(\.font, font)
+    transformEnvironment { $0.font = font }
   }
 }

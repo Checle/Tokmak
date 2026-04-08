@@ -16,6 +16,39 @@
 //  Created by Carson Katri on 7/19/20.
 //
 
+ #if hasFeature(Embedded)
+public struct _AnyApp: App {
+  public init<A: App>(_ app: A) {}
+
+  public func walk<V: AppWalker>(_ visitor: inout V) {
+    fatalError("_AnyApp is unavailable in embedded builds.")
+  }
+
+  @_spi(TokmakUI)
+  public var body: Never {
+    neverScene("_AnyApp")
+  }
+
+  @_spi(TokmakUI)
+  public init() {
+    fatalError("`_AnyApp` cannot be initialized without an underlying `App` type.")
+  }
+
+  @_spi(TokmakUI)
+  public static func _launch(_ app: Self, with configuration: _AppConfiguration) {
+    fatalError("`_AnyApp` cannot be launched in embedded builds.")
+  }
+
+  @_spi(TokmakUI)
+  public static func _setTitle(_ title: String) {
+    fatalError("`title` cannot be set for `_AnyApp` in embedded builds.")
+  }
+
+  public static var _configuration: _AppConfiguration {
+    fatalError("`configuration` cannot be set for `_AnyApp` in embedded builds.")
+  }
+}
+#else
 public struct _AnyApp: App {
   var app: Any
   let type: Any.Type
@@ -66,3 +99,4 @@ public struct _AnyApp: App {
     fatalError("`configuration` cannot be set for `AnyApp`. Access underlying `app` value.")
   }
 }
+#endif

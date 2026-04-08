@@ -20,14 +20,3 @@ public enum LayoutDirection: Hashable, CaseIterable {
   case leftToRight
   case rightToLeft
 }
-
-extension EnvironmentValues {
-  private enum LayoutDirectionKey: EnvironmentKey {
-    static var defaultValue: LayoutDirection = .leftToRight
-  }
-
-  public var layoutDirection: LayoutDirection {
-    get { self[LayoutDirectionKey.self] }
-    set { self[LayoutDirectionKey.self] = newValue }
-  }
-}
