@@ -18,71 +18,70 @@ Tokmak is designed to be used primarily as a package dependency in your Swift Em
 ```swift
 // Package.swift
 dependencies: [
-    .package(url: "https://github.com/YOUR_USERNAME/Tokmak.git", branch: "main")
+    .package(url: "https://github.com/Checle/Tokmak.git", branch: "main")
 ]
+```
+
+## Running the Simulator
+
+You can instantly test your Tokmak UI layouts natively on macOS or Linux using the built-in SDL2 simulator.
+
+First, ensure you have SDL2 installed:
+- **macOS (Homebrew):** `brew install sdl2`
+- **macOS (MacPorts):** `sudo port install libsdl2`
+- **Linux (Ubuntu/Debian):** `sudo apt install libsdl2-dev`
+
+Then, simply run the included example executable:
+
+```bash
+swift run TokmakExample
 ```
 
 ## Hardware Integration (E-Paper / Display Bridge)
 
-TokmakUI completely abstracts away LVGL's C pointers (`lv_disp_drv_t`, `lv_disp_draw_buf_t`). You simply pass a `DisplayConfiguration` to `MyApp.main(display:)`. TokmakUI will internally allocate the LVGL C structs, register the C-to-Swift closure bridges, and start the render loop.
+Tokmak uses a "Zero-Overhead" hardware abstraction layer for MCU integration. Instead of passing dynamic closures, Tokmak defines its target hardware via C macro constants (e.g., `-DTOKMAK_PLATFORM_PICO=1`) and expects the application to provide specific external symbols (like `gpio_put` or `sleep_ms`) at link-time.
 
-Here is a complete example of how to initialize TokmakUI for a hardware display (like an E-Paper screen) from your top-level Embedded Swift project:
+Here is an example of an application entry point for the Raspberry Pi Pico and the GDEY037T03 e-paper display:
 
 ```swift
 import TokmakUI
-import CLVGL // Only needed if you need to use the lv_color_t type directly
 
-let epdWidth = 800
-let epdHeight = 480
-
-// 1. Allocate your drawing buffer statically
-// (e.g. 20 lines of height for the LVGL draw buffer)
-var lvBuf = [lv_color_t](repeating: .init(full: 0), count: epdWidth * 20)
-
-// 2. Define your hardware-specific framebuffer (for 1-bit E-Paper)
-var epd_fb = [UInt8](repeating: 0, count: (epdWidth * epdHeight) / 8)
-
-// 3. Create the Display Configuration
-let displayConfig = DisplayConfiguration(
-    width: epdWidth,
-    height: epdHeight,
-    drawBuffer: UnsafeMutableBufferPointer(start: &lvBuf, count: lvBuf.count)
-) { area, colors in
-    // This closure is called by TokmakUI when LVGL needs to flush pixels.
-    // It is pure Swift! No LVGL C pointers required.
-    
-    var colorIndex = 0
-    for y in area.minY...area.maxY {
-        for x in area.minX...area.maxX {
-            let index = (x + y * epdWidth) / 8
-            let bit = 7 - (x % 8)
-
-            // Map LVGL colors to your E-Paper bit depth
-            if colors[colorIndex].full == 1 { // White
-                epd_fb[index] |= (1 << bit)
-            } else { // Black
-                epd_fb[index] &= ~(1 << bit)
-            }
-
-            colorIndex += 1
-        }
-    }
-
-    // Call your specific hardware SPI/HAL function to update the display
-    // epd_displayBW_partial_region(&epd_fb, area.minX, area.minY, area.maxX, area.maxY)
-}
-
-// 4. Define your UI
 struct MyApp: App {
     var body: some Scene {
         WindowGroup {
-            Text("Hello E-Paper from Embedded Swift!")
+            VStack {
+                Text("Hello E-Paper!")
+                Spacer()
+                Button("Click Me") {
+                    print("Button was clicked")
+                }
+            }
+            .padding(20)
+            .frame(width: 240, height: 416)
         }
     }
 }
 
-// 5. Launch the application with the hardware config
-MyApp.main(display: displayConfig)
+// Launches the app. On an MCU, this automatically wires up the C display driver 
+// and your statically linked hardware pins. On a desktop, it opens an SDL window.
+MyApp.main()
+```
+
+To satisfy the linker on your MCU, you provide a simple C file defining your physical pins and bridging any SDK functions:
+
+```c
+// hardware.c
+#include "pico/stdlib.h"
+#include "hardware/spi.h"
+
+// Define the physical pins expected by Tokmak's E-Paper driver
+const uint32_t TOKMAK_PIN_DC   = 8;
+const uint32_t TOKMAK_PIN_CS   = 9;
+const uint32_t TOKMAK_PIN_RST  = 12;
+const uint32_t TOKMAK_PIN_BUSY = 13;
+void* TOKMAK_SPI_PORT = spi1;
+
+// The driver will automatically use `gpio_put`, `sleep_ms`, etc., from the Pico SDK!
 ```
 
 ## License

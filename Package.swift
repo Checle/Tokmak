@@ -3,9 +3,14 @@
 import PackageDescription
 
 #if os(macOS)
-let SDLCFlags = ["-I/opt/homebrew/include"]
+let SDLCFlags = ["-I/opt/homebrew/include", "-I/opt/local/include"]
+let SDLLinkerFlags = ["-L/opt/homebrew/lib", "-L/opt/local/lib", "-lSDL2"]
+#elseif os(Linux)
+let SDLCFlags = ["-I/usr/include/SDL2", "-D_REENTRANT"]
+let SDLLinkerFlags = ["-lSDL2"]
 #else
 let SDLCFlags = [String]()
+let SDLLinkerFlags = [String]()
 #endif
 
 let package = Package(
@@ -15,6 +20,7 @@ let package = Package(
     .iOS(.v13),
   ],
   products: [
+    .executable(name: "TokmakExample", targets: ["TokmakExample"]),
     .library(name: "CLVGL", targets: ["CLVGL"]),
     .library(
       name: "TokmakUI",
@@ -24,6 +30,10 @@ let package = Package(
   dependencies: [
   ],
   targets: [
+    .executableTarget(
+      name: "TokmakExample",
+      dependencies: ["TokmakUI"]
+    ),
     .target(
       name: "TokmakUI",
       dependencies: [
@@ -35,12 +45,11 @@ let package = Package(
       dependencies: [],
       publicHeadersPath: "include",
       cSettings: [
-        .headerSearchPath("lv_drivers"),
         .headerSearchPath("lvgl"),
         .headerSearchPath("."),
         .unsafeFlags(SDLCFlags + ["-DLV_LVGL_H_INCLUDE_SIMPLE"]),
       ],
-      linkerSettings: [.unsafeFlags(["-L/opt/homebrew/lib", "-lSDL2"])]
+      linkerSettings: [.unsafeFlags(SDLLinkerFlags)]
     ),
   ]
 )
