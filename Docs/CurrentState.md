@@ -31,38 +31,45 @@ Tokmak is a SwiftUI-compatible framework for Embedded Swift on top of LVGL. The 
 - `Text`
 - `Image`
 - `Button`
+- `TextField`
 - `HStack`
 - `VStack`
 - `ZStack`
+- `ScrollView`
+- `ScrollViewReader`
 - `Spacer`
 - `Divider`
 - `ForEach`
+- `Group`
+- `ContentUnavailableView`
+- renderable `Color`
 - `Padding`
 - `Frame`
 - `foregroundColor` environment support for `Text`
+- `multilineTextAlignment` environment support for `Text`
 
 ## Important Limitations
 
 ### Reconciliation
 
-- child identity is still position-based
-- `ForEach` accepts `id:` for API compatibility, but keyed move reconciliation is not implemented yet
+- unkeyed children are still position-based
+- `.id(...)` and `ForEach(id:)` now preserve identified fibers across inserts, removals, and simple reorders
+- reconciliation is still not a full general-purpose keyed diff
 - custom views with dynamic properties still rely on manual `visitProperties`
 
 ### Styling and Design
 
 - the framework is still function-first rather than style-system-first
-- most controls use LVGL defaults with only light normalization
-- monochrome and e-paper visual language is not yet enforced across all controls
+- controls are partially normalized for monochrome simulation, but not yet fully systematized
+- the current simulator styling is coherent enough for testing, but still not a finished e-paper design language
 
 ### Missing or Partial Surface Area
 
-- `TextField`
-- `ScrollView`
-- `ScrollViewReader`
-- `ContentUnavailableView`
-- `Group` as an explicit public surface type
-- `Color` as a renderable fill/background primitive
+- `TextField` is minimal and single-line only
+- `ScrollView` now includes explicit vertical step controls, but still relies on LVGL-native scrolling underneath
+- `ScrollViewReader` currently supports narrow `scrollTo` behavior through `.id(...)`
+- `Image` supports LVGL sources and symbol-backed images, but not a broader asset pipeline
+- `Color` renders as a visible fill view, but it is still primitive rather than a full background system
 
 ## E-Paper Direction
 

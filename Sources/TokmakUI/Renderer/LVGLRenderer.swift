@@ -46,7 +46,7 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
     let originalIndex = childIndex
     let originalPropertyIndex = dynamicPropertyIndex
     
-    let entry = currentFiber?.reconcileChild(A.self, at: childIndex)
+    let entry = currentFiber?.reconcileChild(A.self, at: childIndex, identity: nil)
     currentFiber = entry?.fiber
     childIndex = 0
     dynamicPropertyIndex = 0
@@ -70,7 +70,7 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
     let originalIndex = childIndex
     let originalPropertyIndex = dynamicPropertyIndex
     
-    let entry = currentFiber?.reconcileChild(S.self, at: childIndex)
+    let entry = currentFiber?.reconcileChild(S.self, at: childIndex, identity: nil)
     currentFiber = entry?.fiber
     childIndex = 0
     dynamicPropertyIndex = 0
@@ -97,7 +97,8 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
     let originalIndex = childIndex
     let originalPropertyIndex = dynamicPropertyIndex
     
-    let entry = currentFiber?.reconcileChild(V.self, at: childIndex)
+    let identity = (view as? any ReconciliationIdentityView)?.reconciliationIdentity
+    let entry = currentFiber?.reconcileChild(V.self, at: childIndex, identity: identity)
     let fiber = entry?.fiber
     currentFiber = fiber
     childIndex = 0
@@ -114,8 +115,7 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
       
       // Update logic based on type
       if let text = view as? Text {
-        let proxy = _TextProxy(text)
-        proxy.rawText.withCString { lv_label_set_text(target, $0) }
+        text.applyTextStyle(to: target)
       } else if let textField = view as? TextField {
         textField.updateTextField(target)
       } else if let image = view as? Image {
@@ -128,8 +128,7 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
       // Create new target
       if let text = view as? Text {
         let label = lv_label_create(parent)!
-        let proxy = _TextProxy(text)
-        proxy.rawText.withCString { lv_label_set_text(label, $0) }
+        text.applyTextStyle(to: label)
         target = label
         fiber?.ownsTarget = true
       } else if let widget = view as? any AnyLVGLWidget {
@@ -153,7 +152,11 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
     // Non-primitives walk their body.
     if !(view is any _PrimitiveView) {
       let originalParent = parent
-      parent = target
+      if let contentParentProvider = view as? any LVGLContentParentProvider {
+        parent = contentParentProvider.contentParent(for: target)
+      } else {
+        parent = target
+      }
       view.body.walk(&self)
       parent = originalParent
     }

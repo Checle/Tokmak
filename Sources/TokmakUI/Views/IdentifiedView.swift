@@ -18,9 +18,17 @@ protocol ScrollTargetView {
   var scrollTargetID: AnyHashable { get }
 }
 
-struct _IdentifiedView<Content: View>: View, AnyLVGLWidget, ScrollTargetView {
+protocol ReconciliationIdentityView {
+  var reconciliationIdentity: AnyHashable { get }
+}
+
+struct _IdentifiedView<Content: View>: View, AnyLVGLWidget, ScrollTargetView, ReconciliationIdentityView {
   let content: Content
   let scrollTargetID: AnyHashable
+
+  var reconciliationIdentity: AnyHashable {
+    scrollTargetID
+  }
 
   var body: Content { content }
 

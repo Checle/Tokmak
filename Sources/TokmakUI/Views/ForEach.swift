@@ -14,9 +14,9 @@
 
 /// A collection-backed container that expands into its child views.
 ///
-/// The current reconciler is still position-based, so `id` is accepted for API
-/// compatibility and future keyed reconciliation, but child moves are not yet
-/// matched by identity.
+/// `id` is used to preserve identified child fibers across inserts, removals,
+/// and simple reorders. Reconciliation is still not a full general-purpose
+/// keyed diff, but `ForEach` no longer ignores its identity input.
 public struct ForEach<Data, ID, Content>: View
   where Data: RandomAccessCollection, ID: Hashable, Content: View
 {
@@ -34,8 +34,8 @@ public struct ForEach<Data, ID, Content>: View
     self.content = content
   }
 
-  public var body: _ForEachContent<Data, Content> {
-    _ForEachContent(data: data, content: content)
+  public var body: _ForEachContent<Data, ID, Content> {
+    _ForEachContent(data: data, id: id, content: content)
   }
 }
 
@@ -57,10 +57,11 @@ public extension ForEach where Data == Range<Int>, ID == Int {
   }
 }
 
-public struct _ForEachContent<Data, Content>: _PrimitiveView
-  where Data: RandomAccessCollection, Content: View
+public struct _ForEachContent<Data, ID, Content>: _PrimitiveView
+  where Data: RandomAccessCollection, ID: Hashable, Content: View
 {
   let data: Data
+  let id: KeyPath<Data.Element, ID>
   let content: (Data.Element) -> Content
 
   public var body: Never {
@@ -69,13 +70,13 @@ public struct _ForEachContent<Data, Content>: _PrimitiveView
 
   public func walk<V: ViewWalker>(_ visitor: inout V) {
     for element in data {
-      content(element).walk(&visitor)
+      content(element).id(element[keyPath: id]).walk(&visitor)
     }
   }
 }
 
 extension _ForEachContent: GroupView {
   public var children: [AnyView] {
-    data.map { AnyView(content($0)) }
+    data.map { AnyView(content($0).id($0[keyPath: id])) }
   }
 }

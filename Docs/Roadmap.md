@@ -30,19 +30,15 @@ Newton OS is a useful reference for this direction because its UI treated low-re
 - `Text`
 - `Image`
 - `Button`
+- `TextField`
 - `HStack`
 - `VStack`
-- `ForEach`
-- `Divider`
-- `Spacer`
-- `Color` token type
-
-### Still Needed
-
-- `TextField`
 - `ScrollView`
 - `ScrollViewReader`
+- `ForEach`
 - `Group`
+- `Divider`
+- `Spacer`
 - `ContentUnavailableView`
 - renderable `Color`
 
@@ -60,55 +56,31 @@ Before adding more API, normalize the controls that already exist for monochrome
 
 This step should also review whether current LVGL default styling leaks through anywhere it should not.
 
-### 2. Add `Group`
+### 2. Harden text and image behavior
 
-This is the least risky remaining piece.
+The basic APIs exist, but some renderer behavior still needs tightening.
 
-- expose a public `Group` wrapper as a flattening container
-- keep it behaviorally identical to a structural grouping node
-- no renderer-specific target
+- make `Text` honor alignment and wrapping environment consistently
+- keep `Image` source expectations explicit: LVGL symbol, LVGL file path, or preprocessed bitmap
+- improve how framed text and placeholder/empty-state text constrain and wrap
 
-### 3. Add renderable `Color`
+### 3. Strengthen control styling
 
-`Color` already exists as a token, but not yet as a standalone visible view.
+Current controls are usable, but not yet a coherent low-refresh control set.
 
-- map it to a filled LVGL object
-- ensure black, white, and gray values render predictably on monochrome targets
-- use it later as a building block for separators, panels, and empty states
+- formalize button, input, divider, and scroll visuals in one place
+- remove remaining LVGL-default leakage
+- verify controls on narrow portrait layouts and pixelated rendering
 
-### 4. Add `TextField`
+### 4. Improve explicit scrolling affordances
 
-This is the first meaningful interaction component after `Button`.
+The APIs exist, but the UX is still closer to LVGL defaults than to the target e-paper interaction model.
 
-- start with single-line editing only
-- use strong border affordances and a static caret if needed
-- avoid placeholder styling that depends on subtle color differences
-- verify redraw behavior under repeated editing
+- add visible up/down controls inspired by Newton-style grouped arrows
+- keep gesture scrolling available in the simulator, but not as the only affordance
+- verify programmatic scrolling and manual scrolling do not fight each other
 
-This may need explicit work in event bridging and focus handling.
-
-### 5. Add `ScrollView`
-
-For e-paper, scrolling should not assume touch-panning is the only interaction model.
-
-- begin with vertical scrolling only
-- expose an always-visible scrollbar/control column
-- use grouped up/down arrow buttons inspired by Newton-style explicit scroll controls
-- optimize for page-step and line-step movement instead of inertial scrolling
-
-If LVGL native scrolling is used, the public Tokmak behavior should still remain explicit and monochrome-friendly.
-
-### 6. Add `ScrollViewReader`
-
-Only after basic scrolling works.
-
-- support programmatic scrolling to known children
-- keep the initial API small
-- avoid promising full SwiftUI parity until child identity is stronger
-
-This likely depends on better identifier handling than the current position-based reconciliation provides.
-
-### 7. Add `ContentUnavailableView`
+### 5. Refine `ContentUnavailableView`
 
 This should be intentionally simple on monochrome displays:
 
@@ -118,6 +90,12 @@ This should be intentionally simple on monochrome displays:
 - optional action button
 
 It should read like a compact empty-state card, not a full-bleed marketing panel.
+
+### 6. Improve child identity
+
+- build on the current `.id(...)` and `ForEach(id:)` support
+- extend identity handling beyond simple insert/remove/reorder cases
+- avoid claiming full keyed diffing until moves and removals are matched reliably across the whole tree
 
 ## Cross-Cutting Technical Work
 
@@ -133,9 +111,9 @@ These items affect several views and should be tracked alongside the view work:
 
 A practical near-term milestone is:
 
-1. review and normalize existing controls for monochrome output
-2. add `Group`
-3. add renderable `Color`
-4. add a minimal `TextField`
+1. tighten text/image behavior and alignment
+2. formalize monochrome control styling
+3. add explicit e-paper-friendly scroll affordances
+4. strengthen keyed reconciliation beyond the current `.id(...)` baseline
 
-That yields a visibly more coherent e-paper UI system without immediately forcing the harder scrolling and programmatic-navigation problems.
+That keeps the current view surface usable while shifting from “implemented” to “reliable and shaped for the target”.

@@ -26,27 +26,8 @@ private struct _ContentUnavailableDescription: _PrimitiveView, AnyLVGLWidget {
     _ renderer: LVGLRenderer,
     _ parent: UnsafeMutablePointer<lv_obj_t>
   ) -> UnsafeMutablePointer<lv_obj_t> {
-    let proxy = _TextProxy(text)
     let label = lv_label_create(parent)!
-
-    lv_label_set_long_mode(label, lv_label_long_mode_t(LV_LABEL_LONG_WRAP))
-    lv_obj_set_width(label, tokmakLVCoord(width))
-    lv_obj_set_style_text_align(
-      label,
-      lv_text_align_t(LV_TEXT_ALIGN_CENTER),
-      UInt32(LV_PART_MAIN)
-    )
-    lv_obj_set_style_text_color(
-      label,
-      tokmakLVMonochromeColor(proxy.environment.foregroundColor ?? .primary, in: proxy.environment),
-      UInt32(LV_PART_MAIN)
-    )
-
-    let rawText = proxy.rawText
-    rawText.withCString { cString in
-      lv_label_set_text(label, cString)
-    }
-
+    text.applyTextStyle(to: label, width: tokmakLVCoord(width), alignment: .center)
     return label
   }
 }

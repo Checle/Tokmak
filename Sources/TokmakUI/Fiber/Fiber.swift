@@ -24,12 +24,13 @@ public protocol AnyFiber: AnyObject {
   
   /// The index of this fiber in the parent's list of children.
   var index: Int { get set }
+  var reconciliationIdentity: AnyHashable? { get set }
 
   /// The values of state stored in this fiber.
   var stateValues: [Any] { get set }
   var scrollTargetIDs: [AnyHashable] { get set }
 
-  func reconcileChild<T>(_ type: T.Type, at index: Int) -> (fiber: Fiber<T>, replaced: (any AnyFiber)?)
+  func reconcileChild<T>(_ type: T.Type, at index: Int, identity: AnyHashable?) -> (fiber: Fiber<T>, replaced: (any AnyFiber)?)
   func pruneChildren(after index: Int) -> [(any AnyFiber)]
 }
 
@@ -41,6 +42,7 @@ public final class Fiber<T>: AnyFiber {
   public var target: UnsafeMutableRawPointer?
   public var ownsTarget: Bool = false
   public var index: Int = 0
+  public var reconciliationIdentity: AnyHashable?
   
   /// The values of state stored in this fiber.
   public var stateValues: [Any] = []
@@ -52,7 +54,29 @@ public final class Fiber<T>: AnyFiber {
   
   public init() {}
 
-  public func reconcileChild<Child>(_ type: Child.Type, at index: Int) -> (fiber: Fiber<Child>, replaced: (any AnyFiber)?) {
+  public func reconcileChild<Child>(
+    _ type: Child.Type,
+    at index: Int,
+    identity: AnyHashable? = nil
+  ) -> (fiber: Fiber<Child>, replaced: (any AnyFiber)?) {
+    if let identity, let matched = findChild(with: identity) {
+      if let typedFiber = matched.fiber as? Fiber<Child> {
+        detachChild(matched.fiber, previous: matched.previous)
+        typedFiber.index = index
+        typedFiber.reconciliationIdentity = identity
+        insertChild(typedFiber, at: index)
+        return (typedFiber, nil)
+      }
+
+      let replacement = Fiber<Child>()
+      replacement.index = index
+      replacement.reconciliationIdentity = identity
+      detachChild(matched.fiber, previous: matched.previous)
+      insertChild(replacement, at: index)
+      matched.fiber.sibling = nil
+      return (replacement, matched.fiber)
+    }
+
     var previous: (any AnyFiber)?
     var current = child
 
@@ -62,12 +86,14 @@ public final class Fiber<T>: AnyFiber {
     }
 
     if let fiber = current, fiber.index == index {
-      if let typedFiber = fiber as? Fiber<Child> {
+      if let typedFiber = fiber as? Fiber<Child>, fiber.reconciliationIdentity == identity {
+        typedFiber.reconciliationIdentity = identity
         return (typedFiber, nil)
       }
 
       let replacement = Fiber<Child>()
       replacement.index = index
+      replacement.reconciliationIdentity = identity
       replacement.sibling = fiber.sibling
 
       if let previous {
@@ -82,6 +108,7 @@ public final class Fiber<T>: AnyFiber {
 
     let newChild = Fiber<Child>()
     newChild.index = index
+    newChild.reconciliationIdentity = identity
 
     if let previous {
       newChild.sibling = previous.sibling
@@ -132,5 +159,49 @@ public final class Fiber<T>: AnyFiber {
     }
 
     return collected
+  }
+
+  private func findChild(with identity: AnyHashable) -> (previous: (any AnyFiber)?, fiber: any AnyFiber)? {
+    var previous: (any AnyFiber)?
+    var current = child
+
+    while let fiber = current {
+      if fiber.reconciliationIdentity == identity {
+        return (previous, fiber)
+      }
+      previous = fiber
+      current = fiber.sibling
+    }
+
+    return nil
+  }
+
+  private func detachChild(_ target: any AnyFiber, previous: (any AnyFiber)?) {
+    if let previous {
+      previous.sibling = target.sibling
+    } else if child === target {
+      child = target.sibling
+    }
+    target.sibling = nil
+  }
+
+  private func insertChild(_ target: any AnyFiber, at index: Int) {
+    target.index = index
+
+    var previous: (any AnyFiber)?
+    var current = child
+
+    while let fiber = current, fiber.index < index {
+      previous = fiber
+      current = fiber.sibling
+    }
+
+    if let previous {
+      target.sibling = previous.sibling
+      previous.sibling = target
+    } else {
+      target.sibling = child
+      child = target
+    }
   }
 }

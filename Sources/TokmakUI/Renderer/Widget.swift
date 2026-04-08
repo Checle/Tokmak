@@ -18,6 +18,10 @@ protocol AnyLVGLWidget {
   func new(_ renderer: LVGLRenderer, _ parent: UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t>
 }
 
+protocol LVGLContentParentProvider {
+  func contentParent(for target: UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t>
+}
+
 struct LVGLWidgetView<Content: View>: _PrimitiveView, AnyLVGLWidget {
   public var body: Never {
     neverBody("LVGLWidgetView")

@@ -47,10 +47,12 @@ public struct Button<Label: View>: View, AnyLVGLWidget {
     lv_obj_set_style_anim_time(obj, 0, UInt32(LV_PART_MAIN))
 
     let pressedSelector = UInt32(LV_PART_MAIN | LV_STATE_PRESSED)
-    lv_obj_set_style_bg_color(obj, tokmakLVPrimaryBluePressed, pressedSelector)
-    lv_obj_set_style_text_color(obj, lv_color_hex(0xFFFFFF), pressedSelector)
+    lv_obj_set_style_border_color(obj, tokmakLVPrimaryBlue, pressedSelector)
+    lv_obj_set_style_bg_color(obj, lv_color_hex(0xFFFFFF), pressedSelector)
+    lv_obj_set_style_text_color(obj, tokmakLVPrimaryBluePressed, pressedSelector)
     lv_obj_set_style_transform_width(obj, 0, pressedSelector)
     lv_obj_set_style_transform_height(obj, 0, pressedSelector)
+    lv_obj_set_style_anim_time(obj, 0, pressedSelector)
 
     EventRegistry.register(obj: obj, action: action)
 

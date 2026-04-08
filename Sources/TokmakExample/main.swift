@@ -48,30 +48,33 @@ struct MyApp: App {
                     Text("Typed: \(enteredText)")
                         .foregroundColor(Color(white: 0.4))
 
-                    if showsUnavailable {
-                        ContentUnavailableView(
-                            systemImage: Image.Symbol.warning,
-                            "No Notes Yet",
-                            description: "This e-paper dashboard has nothing to render in the current filter."
-                        ) {
-                            Button("Restore Content") {
-                                showsUnavailable = false
+                    Group {
+                        if showsUnavailable {
+                            ContentUnavailableView(
+                                "No Notes Yet",
+                                description: "This e-paper dashboard has nothing to render in the current filter."
+                            ) {
+                                Button("Restore Content") {
+                                    showsUnavailable = false
+                                }
                             }
-                        }
-                    } else {
-                        ScrollView {
-                            ForEach(0..<10) { index in
-                                Text("Scroll row \(index)")
-                                    .id(index)
+                        } else {
+                            ScrollView {
+                                ForEach(0..<10) { index in
+                                    Text("Scroll row \(index)")
+                                        .id(index)
+                                }
                             }
+                            .frame(width: 520, height: 120)
                         }
-                        .frame(width: 520, height: 120)
                     }
 
-                    Spacer()
+                    Group {
+                        Spacer()
 
-                    Text("Target: pixelated BW e-paper")
-                        .foregroundColor(Color(white: 0.4))
+                        Text("Target: pixelated BW e-paper")
+                            .foregroundColor(Color(white: 0.4))
+                    }
                 }
                 .padding(18)
                 .frame(width: 720, height: 420)

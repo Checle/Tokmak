@@ -79,3 +79,15 @@ func tokmakLVMonochromeColor(_ color: Color?, in environment: EnvironmentValues?
 
   return lv_color_hex(0x000000)
 }
+
+@inline(__always)
+func tokmakLVTextAlign(_ alignment: TextAlignment) -> lv_text_align_t {
+  switch alignment {
+  case .leading:
+    return lv_text_align_t(LV_TEXT_ALIGN_LEFT)
+  case .center:
+    return lv_text_align_t(LV_TEXT_ALIGN_CENTER)
+  case .trailing:
+    return lv_text_align_t(LV_TEXT_ALIGN_RIGHT)
+  }
+}
