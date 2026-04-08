@@ -27,6 +27,8 @@ public struct VStack<Content: View>: View, AnyLVGLWidget {
     let obj = lv_obj_create(parent)!
     lv_obj_set_layout(obj, tokmakLVLayout(LV_LAYOUT_FLEX))
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN)
+    lv_obj_set_width(obj, tokmakLVSizeContent)
+    lv_obj_set_height(obj, tokmakLVSizeContent)
     
     // Default SwiftUI behavior is no padding on VStacks/HStacks unless specified, 
     // and they wrap their content tightly, but LVGL defaults to padding.

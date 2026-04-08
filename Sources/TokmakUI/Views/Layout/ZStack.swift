@@ -25,6 +25,8 @@ public struct ZStack<Content: View>: View, AnyLVGLWidget {
 
   func new(_ renderer: LVGLRenderer, _ parent: UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t> {
     let obj = lv_obj_create(parent)!
+    lv_obj_set_width(obj, tokmakLVSizeContent)
+    lv_obj_set_height(obj, tokmakLVSizeContent)
     
     // ZStack defaults to center alignment for all its children.
     // In LVGL, we can achieve this by setting the flex layout to center, 

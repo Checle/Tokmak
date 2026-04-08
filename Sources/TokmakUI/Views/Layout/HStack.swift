@@ -27,6 +27,8 @@ public struct HStack<Content: View>: View, AnyLVGLWidget {
     let obj = lv_obj_create(parent)!
     lv_obj_set_layout(obj, tokmakLVLayout(LV_LAYOUT_FLEX))
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW)
+    lv_obj_set_width(obj, tokmakLVSizeContent)
+    lv_obj_set_height(obj, tokmakLVSizeContent)
     
     // Clear LVGL default styling to match SwiftUI
     lv_obj_set_style_pad_all(obj, 0, UInt32(LV_PART_MAIN))
