@@ -27,6 +27,7 @@ public protocol AnyFiber: AnyObject {
 
   /// The values of state stored in this fiber.
   var stateValues: [Any] { get set }
+  var scrollTargetIDs: [AnyHashable] { get set }
 
   func reconcileChild<T>(_ type: T.Type, at index: Int) -> (fiber: Fiber<T>, replaced: (any AnyFiber)?)
   func pruneChildren(after index: Int) -> [(any AnyFiber)]
@@ -43,6 +44,7 @@ public final class Fiber<T>: AnyFiber {
   
   /// The values of state stored in this fiber.
   public var stateValues: [Any] = []
+  public var scrollTargetIDs: [AnyHashable] = []
   
   /// The current state stored in this fiber.
   /// (Placeholder for future state implementation)

@@ -41,7 +41,8 @@ public struct TextField: _PrimitiveView, AnyLVGLWidget {
     lv_obj_set_style_bg_opa(obj, lv_opa_t(LV_OPA_COVER), UInt32(LV_PART_MAIN))
     lv_obj_set_style_text_color(obj, lv_color_hex(0x000000), UInt32(LV_PART_MAIN))
     lv_obj_set_style_pad_hor(obj, 6, UInt32(LV_PART_MAIN))
-    lv_obj_set_style_pad_ver(obj, 4, UInt32(LV_PART_MAIN))
+    lv_obj_set_style_pad_top(obj, 5, UInt32(LV_PART_MAIN))
+    lv_obj_set_style_pad_bottom(obj, 3, UInt32(LV_PART_MAIN))
     lv_obj_set_style_anim_time(obj, 0, UInt32(LV_PART_MAIN))
     lv_obj_set_style_text_color(
       obj,

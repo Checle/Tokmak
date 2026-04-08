@@ -145,6 +145,10 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
       fiber?.target = UnsafeMutableRawPointer(target)
     }
 
+    if let scrollTargetView = view as? any ScrollTargetView, let fiber {
+      renderer.registerScrollTarget(scrollTargetView.scrollTargetID, target: target, fiber: fiber)
+    }
+
     // Primitive views don't have bodies to walk, they manage their own children.
     // Non-primitives walk their body.
     if !(view is any _PrimitiveView) {
@@ -173,6 +177,7 @@ public final class LVGLRenderer {
   
   private var rootFiber: (any AnyFiber)?
   private var rootApp: _AnyApp?
+  private var scrollTargets: [AnyHashable: UnsafeMutablePointer<lv_obj_t>] = [:]
   
   public init() {
     self.screen = lv_scr_act()
@@ -204,6 +209,24 @@ public final class LVGLRenderer {
     lv_refr_now(nil)
   }
 
+  func registerScrollTarget(
+    _ id: AnyHashable,
+    target: UnsafeMutablePointer<lv_obj_t>,
+    fiber: any AnyFiber
+  ) {
+    if !fiber.scrollTargetIDs.contains(id) {
+      fiber.scrollTargetIDs.append(id)
+    }
+    scrollTargets[id] = target
+  }
+
+  public func scrollTo<ID>(_ id: ID) where ID: Hashable {
+    let key = AnyHashable(id)
+    guard let target = scrollTargets[key] else { return }
+    lv_obj_scroll_to_view(target, LV_ANIM_OFF)
+    lv_refr_now(nil)
+  }
+
   func cleanup(_ fiber: (any AnyFiber)?) {
     guard let fiber else { return }
     cleanup([fiber])
@@ -227,10 +250,15 @@ public final class LVGLRenderer {
       lv_obj_del(target.assumingMemoryBound(to: lv_obj_t.self))
     }
 
+    for id in fiber.scrollTargetIDs {
+      scrollTargets.removeValue(forKey: id)
+    }
+
     fiber.child = nil
     fiber.sibling = nil
     fiber.target = nil
     fiber.ownsTarget = false
     fiber.stateValues.removeAll()
+    fiber.scrollTargetIDs.removeAll()
   }
 }

@@ -36,6 +36,25 @@ public struct Image: _PrimitiveView, Equatable {
   }
 }
 
+public extension Image {
+  enum Symbol {
+    public static let warning = "\u{f071}"
+    public static let image = "\u{f03e}"
+    public static let list = "\u{f00b}"
+    public static let file = "\u{f15b}"
+    public static let directory = "\u{f07b}"
+    public static let edit = "\u{f304}"
+    public static let download = "\u{f019}"
+    public static let upload = "\u{f093}"
+    public static let ok = "\u{f00c}"
+    public static let close = "\u{f00d}"
+  }
+
+  static func system(_ symbol: String) -> Image {
+    Image(systemName: symbol)
+  }
+}
+
 struct _ImageProxy {
   let subject: Image
 
