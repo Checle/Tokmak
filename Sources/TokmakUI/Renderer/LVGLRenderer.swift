@@ -116,6 +116,8 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
       if let text = view as? Text {
         let proxy = _TextProxy(text)
         proxy.rawText.withCString { lv_label_set_text(target, $0) }
+      } else if let image = view as? Image {
+        image.updateImage(target)
       }
       // ... more update logic
     } else {
