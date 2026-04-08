@@ -18,12 +18,20 @@ extension Text: AnyLVGLWidget {
   func new(_ renderer: LVGLRenderer, _ parent: UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t> {
     let proxy = _TextProxy(self)
     let label = lv_label_create(parent)!
-    
+
+    lv_label_set_long_mode(label, lv_label_long_mode_t(LV_LABEL_LONG_WRAP))
+    lv_obj_set_width(label, tokmakLVSizeContent)
+    lv_obj_set_style_text_color(
+      label,
+      tokmakLVMonochromeColor(proxy.environment.foregroundColor ?? .primary, in: proxy.environment),
+      UInt32(LV_PART_MAIN)
+    )
+
     let text = proxy.rawText
     text.withCString { cString in
       lv_label_set_text(label, cString)
     }
-    
+
     return label
   }
 }

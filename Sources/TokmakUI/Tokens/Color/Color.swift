@@ -166,4 +166,3 @@ public extension Color {
     )
   }
 }
-

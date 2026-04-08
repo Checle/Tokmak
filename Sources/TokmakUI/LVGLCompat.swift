@@ -40,3 +40,42 @@ func tokmakLVGridFraction(_ value: Int32) -> lv_coord_t {
 
 let tokmakLVSizeContent: lv_coord_t = lv_coord_t((Int32(1) << tokmakLVCoordTypeShift) | 2001)
 let tokmakLVGridTemplateLast: lv_coord_t = lv_coord_t(tokmakLVCoordMaxRaw)
+
+let tokmakLVPrimaryBlue: lv_color_t = lv_color_hex(0x000000)
+let tokmakLVPrimaryBluePressed: lv_color_t = lv_color_hex(0x000000)
+let tokmakLVPrimaryBlueMuted: lv_color_t = lv_color_hex(0x000000)
+
+@inline(__always)
+func tokmakLVEnvironment(_ environment: EnvironmentValues? = nil) -> EnvironmentValues {
+  var resolved = EnvironmentValues()
+  resolved.colorScheme = .light
+  resolved.merge(environment)
+  return resolved
+}
+
+@inline(__always)
+func tokmakLVMonochromeColor(_ color: Color?, in environment: EnvironmentValues? = nil) -> lv_color_t {
+  guard let color else {
+    return lv_color_hex(0x000000)
+  }
+
+  let resolved = _ColorProxy(color).resolve(in: tokmakLVEnvironment(environment))
+  let luminance =
+    (resolved.red * 0.299) +
+    (resolved.green * 0.587) +
+    (resolved.blue * 0.114)
+
+  if resolved.opacity <= 0.05 {
+    return lv_color_hex(0xFFFFFF)
+  }
+
+  if luminance >= 0.72 {
+    return lv_color_hex(0xFFFFFF)
+  }
+
+  if luminance >= 0.38 {
+    return lv_color_hex(0x9A9A9A)
+  }
+
+  return lv_color_hex(0x000000)
+}

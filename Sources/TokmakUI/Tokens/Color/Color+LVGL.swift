@@ -14,24 +14,29 @@
 
 import CLVGL
 
-public struct Divider: _PrimitiveView, AnyLVGLWidget {
-  public init() {}
-
+extension Color: _PrimitiveView {
   public var body: Never {
-    neverBody("Divider")
+    neverBody("Color")
   }
+}
 
+extension Color: AnyLVGLWidget {
   func new(_ renderer: LVGLRenderer, _ parent: UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t> {
     let obj = lv_obj_create(parent)!
-
-    lv_obj_set_width(obj, lv_pct(100))
-    lv_obj_set_height(obj, tokmakLVCoord(1))
-    lv_obj_set_style_pad_all(obj, 0, UInt32(LV_PART_MAIN))
-    lv_obj_set_style_border_width(obj, 0, UInt32(LV_PART_MAIN))
-    lv_obj_set_style_radius(obj, 0, UInt32(LV_PART_MAIN))
-    lv_obj_set_style_bg_color(obj, lv_color_hex(0x000000), UInt32(LV_PART_MAIN))
-    lv_obj_set_style_bg_opa(obj, lv_opa_t(LV_OPA_COVER), UInt32(LV_PART_MAIN))
-
+    applyFill(to: obj)
     return obj
+  }
+
+  func applyFill(to obj: UnsafeMutablePointer<lv_obj_t>) {
+    let environment = EnvironmentValues()
+
+    lv_obj_set_width(obj, tokmakLVCoord(44))
+    lv_obj_set_height(obj, tokmakLVCoord(24))
+    lv_obj_set_style_pad_all(obj, 0, UInt32(LV_PART_MAIN))
+    lv_obj_set_style_radius(obj, 0, UInt32(LV_PART_MAIN))
+    lv_obj_set_style_border_width(obj, 1, UInt32(LV_PART_MAIN))
+    lv_obj_set_style_border_color(obj, lv_color_hex(0x000000), UInt32(LV_PART_MAIN))
+    lv_obj_set_style_bg_color(obj, tokmakLVMonochromeColor(self, in: environment), UInt32(LV_PART_MAIN))
+    lv_obj_set_style_bg_opa(obj, lv_opa_t(LV_OPA_COVER), UInt32(LV_PART_MAIN))
   }
 }

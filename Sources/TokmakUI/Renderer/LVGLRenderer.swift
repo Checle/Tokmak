@@ -116,8 +116,12 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
       if let text = view as? Text {
         let proxy = _TextProxy(text)
         proxy.rawText.withCString { lv_label_set_text(target, $0) }
+      } else if let textField = view as? TextField {
+        textField.updateTextField(target)
       } else if let image = view as? Image {
         image.updateImage(target)
+      } else if let color = view as? Color {
+        color.applyFill(to: target)
       }
       // ... more update logic
     } else {
@@ -172,6 +176,8 @@ public final class LVGLRenderer {
   
   public init() {
     self.screen = lv_scr_act()
+    lv_obj_set_style_bg_color(screen, lv_color_hex(0xFFFFFF), UInt32(LV_PART_MAIN))
+    lv_obj_set_style_bg_opa(screen, lv_opa_t(LV_OPA_COVER), UInt32(LV_PART_MAIN))
     Self.shared = self
   }
   

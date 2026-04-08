@@ -13,6 +13,23 @@ static int last_x = 0;
 static int last_y = 0;
 static bool quit = false;
 
+static lv_obj_t * tokmak_find_focused_textarea(lv_obj_t * obj) {
+    if(obj == NULL) return NULL;
+
+    if(lv_obj_check_type(obj, &lv_textarea_class) && lv_obj_has_state(obj, LV_STATE_FOCUSED)) {
+        return obj;
+    }
+
+    const uint32_t child_count = lv_obj_get_child_cnt(obj);
+    for(uint32_t index = 0; index < child_count; index++) {
+        lv_obj_t * child = lv_obj_get_child(obj, (int32_t) index);
+        lv_obj_t * focused = tokmak_find_focused_textarea(child);
+        if(focused != NULL) return focused;
+    }
+
+    return NULL;
+}
+
 void tokmak_sdl_init(int width, int height) {
     SDL_Init(SDL_INIT_VIDEO);
     window = SDL_CreateWindow("Tokmak Simulator",
@@ -25,6 +42,7 @@ void tokmak_sdl_init(int width, int height) {
     // If your LV_COLOR_DEPTH is 16, this needs to be SDL_PIXELFORMAT_RGB565.
     // For this bridge, we assume 32-bit color depth for the simulator.
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, width, height);
+    SDL_StartTextInput();
 }
 
 void tokmak_sdl_display_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p) {
@@ -74,6 +92,31 @@ void tokmak_sdl_loop(void) {
                     last_x = event.motion.x;
                     last_y = event.motion.y;
                     break;
+                case SDL_TEXTINPUT: {
+                    lv_obj_t * ta = tokmak_find_focused_textarea(lv_scr_act());
+                    if(ta != NULL) {
+                        lv_textarea_add_text(ta, event.text.text);
+                    }
+                    break;
+                }
+                case SDL_KEYDOWN: {
+                    lv_obj_t * ta = tokmak_find_focused_textarea(lv_scr_act());
+                    if(ta == NULL) break;
+
+                    switch(event.key.keysym.sym) {
+                        case SDLK_BACKSPACE:
+                            lv_textarea_del_char(ta);
+                            break;
+                        case SDLK_RETURN:
+                        case SDLK_KP_ENTER:
+                            lv_event_send(ta, LV_EVENT_READY, NULL);
+                            break;
+                        case SDLK_ESCAPE:
+                            lv_event_send(ta, LV_EVENT_CANCEL, NULL);
+                            break;
+                    }
+                    break;
+                }
             }
         }
         
@@ -85,6 +128,7 @@ void tokmak_sdl_loop(void) {
     SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
+    SDL_StopTextInput();
     SDL_Quit();
 }
 

@@ -27,19 +27,33 @@ public struct Button<Label: View>: View, AnyLVGLWidget {
 
   func new(_ renderer: LVGLRenderer, _ parent: UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t> {
     let obj = lv_btn_create(parent)!
-    
-    // Default styling for a button. In standard LVGL, buttons wrap their content.
+
     lv_obj_set_layout(obj, tokmakLVLayout(LV_LAYOUT_FLEX))
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW)
     lv_obj_set_flex_align(obj, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER)
-    
-    // Clear LVGL default padding to match SwiftUI more closely, though buttons often have SOME padding.
-    // Let's leave a small padding to mimic a standard button.
-    lv_obj_set_style_pad_all(obj, 8, UInt32(LV_PART_MAIN))
-    
-    // Register the action in our global registry
+    lv_obj_set_width(obj, tokmakLVSizeContent)
+    lv_obj_set_height(obj, tokmakLVSizeContent)
+
+    lv_obj_set_style_pad_hor(obj, 10, UInt32(LV_PART_MAIN))
+    lv_obj_set_style_pad_ver(obj, 6, UInt32(LV_PART_MAIN))
+    lv_obj_set_style_radius(obj, tokmakLVCoord(8), UInt32(LV_PART_MAIN))
+    lv_obj_set_style_border_width(obj, 1, UInt32(LV_PART_MAIN))
+    lv_obj_set_style_border_color(obj, tokmakLVPrimaryBlue, UInt32(LV_PART_MAIN))
+    lv_obj_set_style_bg_color(obj, tokmakLVPrimaryBlue, UInt32(LV_PART_MAIN))
+    lv_obj_set_style_bg_opa(obj, lv_opa_t(LV_OPA_COVER), UInt32(LV_PART_MAIN))
+    lv_obj_set_style_text_color(obj, lv_color_hex(0xFFFFFF), UInt32(LV_PART_MAIN))
+    lv_obj_set_style_transform_width(obj, 0, UInt32(LV_PART_MAIN))
+    lv_obj_set_style_transform_height(obj, 0, UInt32(LV_PART_MAIN))
+    lv_obj_set_style_anim_time(obj, 0, UInt32(LV_PART_MAIN))
+
+    let pressedSelector = UInt32(LV_PART_MAIN | LV_STATE_PRESSED)
+    lv_obj_set_style_bg_color(obj, tokmakLVPrimaryBluePressed, pressedSelector)
+    lv_obj_set_style_text_color(obj, lv_color_hex(0xFFFFFF), pressedSelector)
+    lv_obj_set_style_transform_width(obj, 0, pressedSelector)
+    lv_obj_set_style_transform_height(obj, 0, pressedSelector)
+
     EventRegistry.register(obj: obj, action: action)
-    
+
     return obj
   }
 }
