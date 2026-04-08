@@ -20,9 +20,11 @@ Tokmak is a SwiftUI-compatible framework for Embedded Swift using LVGL. It focus
 
 ### Versioning and Commits
 - We adhere to semantic versioning.
-- Make as few commits as possible (ideally 0 or 1 per session). Do not flood the history.
+- Make as few commits as possible (ideally 0 or 1 per session). Do not flood the history. Bundle changes together.
 - Commit messages must be simple: just a verb and minimal info (e.g., "Add LVGL layout and e-paper driver"). Do not use conventional prefixes like `feat:` or `refactor:`.
-- **Author Requirement:** All automated commits must use the author `Google Gemini <gemini@checle.com>`.
+- **No Amending / Force Pushing:** Do not use `git commit --amend` or `git push -f`. Once a commit is pushed, leave it alone.
+- **Author & Committer Requirement:** All automated commits must use the author `Google Gemini <gemini@checle.com>`. Furthermore, the committer must also be set to match the author. Use the following command format:
+  `GIT_COMMITTER_NAME="Google Gemini" GIT_COMMITTER_EMAIL="gemini@checle.com" git commit --author="Google Gemini <gemini@checle.com>" -m "..."`
 
 ### 1. Robust State Management (Priority: High)
 - [ ] Implement `visitProperties` in common views or provide a macro-like solution (if possible in Swift Embedded) to avoid manual implementation.
