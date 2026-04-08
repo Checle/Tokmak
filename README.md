@@ -37,9 +37,55 @@ Then, simply run the included example executable:
 swift run TokmakExample
 ```
 
+## Embedded Build Checks
+
+There are two useful levels of build validation:
+
+1. A source-level Embedded Swift sanity check, run from the host toolchain.
+2. A real MCU cross-build, using an embedded Swift SDK / sysroot and your hardware SDK.
+
+The first check is useful because it catches host-only imports and APIs early:
+
+```bash
+swift build -c release \
+  -Xswiftc -wmo \
+  -Xswiftc -enable-experimental-feature \
+  -Xswiftc Embedded \
+  -Xcc -DTOKMAK_PLATFORM_PICO=1 \
+  -Xswiftc -DTOKMAK_PLATFORM_PICO
+```
+
+For ESP-IDF-backed builds, use the ESP-IDF platform macro instead:
+
+```bash
+swift build -c release \
+  -Xswiftc -wmo \
+  -Xswiftc -enable-experimental-feature \
+  -Xswiftc Embedded \
+  -Xcc -DTOKMAK_PLATFORM_ESP_IDF=1 \
+  -Xswiftc -DTOKMAK_PLATFORM_ESP_IDF
+```
+
+This does not produce a Pi Pico binary. It only verifies that the Swift package itself is not accidentally pulling in desktop-only code paths while `TOKMAK_PLATFORM_PICO` is enabled.
+
+When run against a desktop target triple, this check can still fail with `module 'Swift' cannot be imported in embedded Swift mode`. That reflects the host toolchain / target combination, not necessarily a Tokmak source issue. Use it to catch package-structure regressions, not as proof of a successful MCU build.
+
+For a real MCU build, use an embedded target triple plus a matching C sysroot / Swift SDK. For example:
+
+```bash
+swift build --triple armv6m-none-none-eabi -c release \
+  -Xswiftc -wmo \
+  -Xswiftc -enable-experimental-feature \
+  -Xswiftc Embedded \
+  -Xcc -DTOKMAK_PLATFORM_PICO=1 \
+  -Xswiftc -DTOKMAK_PLATFORM_PICO
+```
+
+Without an installed embedded SDK / sysroot, the cross-build will fail early on standard C headers such as `string.h`. That failure means the toolchain environment is incomplete, not that Tokmak's Pico integration model is invalid.
+
 ## Hardware Integration (E-Paper / Display Bridge)
 
-Tokmak uses a "Zero-Overhead" hardware abstraction layer for MCU integration. Instead of passing dynamic closures, Tokmak defines its target hardware via C macro constants (e.g., `-DTOKMAK_PLATFORM_PICO=1`) and expects the application to provide specific external symbols (like `gpio_put` or `sleep_ms`) at link-time.
+Tokmak uses a "Zero-Overhead" hardware abstraction layer for MCU integration. Instead of passing dynamic closures, Tokmak defines its target hardware via C macro constants (for example, `-DTOKMAK_PLATFORM_PICO=1` or `-DTOKMAK_PLATFORM_ESP_IDF=1`) and expects the application to provide specific external symbols at link-time.
 
 Here is an example of an application entry point for the Raspberry Pi Pico and the GDEY037T03 e-paper display:
 
@@ -67,7 +113,11 @@ struct MyApp: App {
 MyApp.main()
 ```
 
-To satisfy the linker on your MCU, you provide a simple C file defining your physical pins and bridging any SDK functions:
+To satisfy the linker on your MCU, you provide a small C file owned by the final firmware target. That target links against the actual hardware SDK. Tokmak itself should not directly own the Pico SDK or ESP-IDF link step.
+
+### Raspberry Pi Pico
+
+For Raspberry Pi Pico, you provide the physical pins and the SPI instance:
 
 ```c
 // hardware.c
@@ -83,6 +133,51 @@ void* TOKMAK_SPI_PORT = spi1;
 
 // The driver will automatically use `gpio_put`, `sleep_ms`, etc., from the Pico SDK!
 ```
+
+### ESP-IDF
+
+For ESP-IDF, the application provides a tiny bridge layer. Tokmak does not include ESP-IDF headers itself; the firmware target does.
+
+```c
+// hardware_bridge.c
+#include <stdbool.h>
+#include <stdint.h>
+#include <stddef.h>
+
+#include "driver/gpio.h"
+#include "driver/spi_master.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
+const uint32_t TOKMAK_PIN_DC   = 4;
+const uint32_t TOKMAK_PIN_CS   = 5;
+const uint32_t TOKMAK_PIN_RST  = 6;
+const uint32_t TOKMAK_PIN_BUSY = 7;
+
+extern spi_device_handle_t tokmak_epd_spi;
+
+void tokmak_esp_idf_delay_ms(uint32_t ms) {
+    vTaskDelay(pdMS_TO_TICKS(ms));
+}
+
+void tokmak_esp_idf_gpio_set_level(uint32_t gpio, bool value) {
+    gpio_set_level((gpio_num_t) gpio, value ? 1 : 0);
+}
+
+bool tokmak_esp_idf_gpio_get_level(uint32_t gpio) {
+    return gpio_get_level((gpio_num_t) gpio) != 0;
+}
+
+void tokmak_esp_idf_spi_write(const uint8_t *src, size_t len) {
+    spi_transaction_t transaction = {
+        .length = len * 8,
+        .tx_buffer = src,
+    };
+    spi_device_polling_transmit(tokmak_epd_spi, &transaction);
+}
+```
+
+In an ESP-IDF project, the final firmware target should link the ESP-IDF components and build Tokmak as part of the project, typically using ESP-IDF's CMake component model. The build-system overview is documented by Espressif: https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-guides/build-system.html
 
 ## License
 

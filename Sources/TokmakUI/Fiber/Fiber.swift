@@ -15,7 +15,6 @@
 
 /// A protocol for the persistent tree nodes in the static path.
 public protocol AnyFiber: AnyObject {
-  var parent: (any AnyFiber)? { get set }
   var child: (any AnyFiber)? { get set }
   var sibling: (any AnyFiber)? { get set }
   
@@ -35,7 +34,6 @@ public protocol AnyFiber: AnyObject {
 
 /// A generic node in the persistent tree that knows its type.
 public final class Fiber<T>: AnyFiber {
-  public weak var parent: (any AnyFiber)?
   public var child: (any AnyFiber)?
   public var sibling: (any AnyFiber)?
   
@@ -67,7 +65,6 @@ public final class Fiber<T>: AnyFiber {
       }
 
       let replacement = Fiber<Child>()
-      replacement.parent = self
       replacement.index = index
       replacement.sibling = fiber.sibling
 
@@ -82,7 +79,6 @@ public final class Fiber<T>: AnyFiber {
     }
 
     let newChild = Fiber<Child>()
-    newChild.parent = self
     newChild.index = index
 
     if let previous {

@@ -48,12 +48,11 @@ public struct State<Value>: DynamicProperty, StateProtocol {
       }
     }
 
-    getter = { [weak fiber, initialValue] in
-      fiber?.stateValues[index] ?? initialValue
+    getter = { [fiber] in
+      fiber.stateValues[index]
     }
 
-    setter = { [weak fiber, redraw] newValue, _ in
-      guard let fiber = fiber else { return }
+    setter = { [fiber, redraw] newValue, _ in
       fiber.stateValues[index] = newValue
       redraw()
     }

@@ -32,8 +32,8 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
   mutating func visit<P: DynamicProperty>(_ property: inout P) {
     if let fiber = currentFiber {
       if var state = property as? StateProtocol {
-        state._link(to: fiber, at: dynamicPropertyIndex, redraw: { [weak renderer] in
-          renderer?.requestRedraw()
+        state._link(to: fiber, at: dynamicPropertyIndex, redraw: { [renderer] in
+          renderer.requestRedraw()
         })
         property = state as! P
       }

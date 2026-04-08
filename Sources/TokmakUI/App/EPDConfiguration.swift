@@ -14,13 +14,14 @@
 
 import CLVGL
 
-#if TOKMAK_PLATFORM_PICO
+#if TOKMAK_PLATFORM_PICO || TOKMAK_PLATFORM_ESP_IDF
 public extension App {
     
     /// The primary entry point for E-Paper applications using the GDEY037T03.
     /// It automatically sets up the C EPD driver and registers the LVGL flush callback.
-    /// The EPD driver relies on external C symbols (like `gpio_put`) being linked
-    /// by the application for the chosen platform (e.g., Pi Pico).
+    /// The EPD driver relies on external C symbols being linked by the
+    /// application for the chosen platform (for example, Raspberry Pi Pico
+    /// or ESP-IDF).
     static func main() {
         // 1. Initialize the EPD
         epd_uc8253_init()

@@ -13,6 +13,10 @@ extern "C" {
 #define TOKMAK_PLATFORM_PICO 0
 #endif
 
+#ifndef TOKMAK_PLATFORM_ESP_IDF
+#define TOKMAK_PLATFORM_ESP_IDF 0
+#endif
+
 // E-Paper dimensions
 #define EPD_UC8253_WIDTH  240
 #define EPD_UC8253_HEIGHT 416

@@ -1,4 +1,4 @@
-#if defined(__APPLE__) || defined(__linux__)
+#if (defined(__APPLE__) || defined(__linux__)) && !TOKMAK_PLATFORM_PICO && !TOKMAK_PLATFORM_ESP_IDF
 
 #include "include/tokmak_sdl.h"
 #include <SDL2/SDL.h>

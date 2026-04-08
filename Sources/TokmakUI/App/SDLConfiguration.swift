@@ -14,8 +14,7 @@
 
 import CLVGL
 
-#if os(macOS) || os(Linux)
-import Foundation
+#if (os(macOS) || os(Linux)) && !TOKMAK_PLATFORM_PICO && !TOKMAK_PLATFORM_ESP_IDF
 
 public extension App {
     

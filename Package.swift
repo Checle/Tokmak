@@ -3,15 +3,20 @@
 import PackageDescription
 
 #if os(macOS)
-let SDLCFlags = ["-I/opt/homebrew/include", "-I/opt/local/include"]
-let SDLLinkerFlags = ["-L/opt/homebrew/lib", "-L/opt/local/lib", "-lSDL2"]
+let sdlCFlags = ["-I/opt/homebrew/include", "-I/opt/local/include"]
+let sdlLinkerFlags = ["-L/opt/homebrew/lib", "-L/opt/local/lib", "-lSDL2"]
 #elseif os(Linux)
-let SDLCFlags = ["-I/usr/include/SDL2", "-D_REENTRANT"]
-let SDLLinkerFlags = ["-lSDL2"]
+let sdlCFlags = ["-I/usr/include/SDL2", "-D_REENTRANT"]
+let sdlLinkerFlags = ["-lSDL2"]
 #else
-let SDLCFlags = [String]()
-let SDLLinkerFlags = [String]()
+let sdlCFlags = [String]()
+let sdlLinkerFlags = [String]()
 #endif
+
+let simulatorCondition: BuildSettingCondition? = .when(platforms: [
+  .macOS,
+  .linux,
+])
 
 let package = Package(
   name: "Tokmak",
@@ -43,13 +48,25 @@ let package = Package(
     .target(
       name: "CLVGL",
       dependencies: [],
+      exclude: [
+        "lvgl/.github",
+        "lvgl/demos",
+        "lvgl/docs",
+        "lvgl/env_support",
+        "lvgl/examples",
+        "lvgl/scripts",
+        "lvgl/tests",
+      ],
       publicHeadersPath: "include",
       cSettings: [
         .headerSearchPath("lvgl"),
         .headerSearchPath("."),
-        .unsafeFlags(SDLCFlags + ["-DLV_LVGL_H_INCLUDE_SIMPLE"]),
+        .unsafeFlags(["-DLV_LVGL_H_INCLUDE_SIMPLE"]),
+        .unsafeFlags(sdlCFlags, simulatorCondition),
       ],
-      linkerSettings: [.unsafeFlags(SDLLinkerFlags)]
+      linkerSettings: [
+        .unsafeFlags(sdlLinkerFlags, simulatorCondition),
+      ]
     ),
   ]
 )

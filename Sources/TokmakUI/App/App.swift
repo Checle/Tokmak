@@ -72,7 +72,7 @@ public extension App {
   static var _configuration: _AppConfiguration { .init() }
 }
 
-#if !os(macOS) && !os(Linux) && !TOKMAK_PLATFORM_PICO
+#if !os(macOS) && !os(Linux) && !TOKMAK_PLATFORM_PICO && !TOKMAK_PLATFORM_ESP_IDF
 public extension App {
   static func main() {
     let app = Self()
