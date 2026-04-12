@@ -73,7 +73,7 @@ func tokmakLVMonochromeColor(_ color: Color?, in environment: EnvironmentValues?
     return lv_color_hex(0xFFFFFF)
   }
 
-  if luminance >= 0.38 {
+  if luminance >= 0.45 {
     return lv_color_hex(0x9A9A9A)
   }
 

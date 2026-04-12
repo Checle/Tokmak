@@ -25,6 +25,14 @@ public struct Button<Label: View>: View, AnyLVGLWidget {
 
   public var body: Label { label }
 
+  public func _visit<V: ViewWalker>(_ visitor: inout V) {
+    visitor.visitButton(self)
+  }
+
+  public func _createTarget(renderer: LVGLRenderer, parent: UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t>? {
+    new(renderer, parent)
+  }
+
   func new(_ renderer: LVGLRenderer, _ parent: UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t> {
     let obj = lv_btn_create(parent)!
 

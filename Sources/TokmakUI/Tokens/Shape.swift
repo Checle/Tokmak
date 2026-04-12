@@ -1,4 +1,3 @@
-// Copyright 2020-2021 Tokamak contributors
 // Copyright 2026 Checle LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,19 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
-//  Created by Carson Katri on 7/17/20.
-//
 
-public protocol DynamicProperty {
-  mutating func update()
-  mutating func visit<V: PropertyVisitor>(_ visitor: inout V)
-}
+public protocol Shape {}
 
-public extension DynamicProperty {
-  mutating func update() {}
-  
-  mutating func visit<V: PropertyVisitor>(_ visitor: inout V) {
-    visitor.visit(&self)
-  }
+public struct Circle: Shape {
+  public init() {}
 }

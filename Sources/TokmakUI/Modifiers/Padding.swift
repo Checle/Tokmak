@@ -35,6 +35,14 @@ public struct _PaddingView<Content: View>: View, AnyLVGLWidget {
 
   public var body: Content { content }
 
+  public func _visit<V: ViewWalker>(_ visitor: inout V) {
+    visitor.visitPaddingView(self)
+  }
+
+  public func _createTarget(renderer: LVGLRenderer, parent: UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t>? {
+    new(renderer, parent)
+  }
+
   func new(_ renderer: LVGLRenderer, _ parent: UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t> {
     let obj = lv_obj_create(parent)!
     
@@ -50,6 +58,9 @@ public struct _PaddingView<Content: View>: View, AnyLVGLWidget {
     if edges.contains(.leading) { lv_obj_set_style_pad_left(obj, leading, UInt32(LV_PART_MAIN)) }
     if edges.contains(.trailing) { lv_obj_set_style_pad_right(obj, trailing, UInt32(LV_PART_MAIN)) }
 
+    lv_obj_set_layout(obj, tokmakLVLayout(LV_LAYOUT_FLEX))
+    lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN)
+    lv_obj_set_flex_align(obj, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER)
     lv_obj_set_width(obj, tokmakLVSizeContent)
     lv_obj_set_height(obj, tokmakLVSizeContent)
     lv_obj_set_style_border_width(obj, 0, UInt32(LV_PART_MAIN))

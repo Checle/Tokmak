@@ -16,6 +16,8 @@
 //  Created by Max Desiatov on 08/04/2020.
 //
 
+import CLVGL
+
 /// A view that displays one or more lines of read-only text.
 ///
 /// You can choose a font using the `font(_:)` view modifier.
@@ -90,6 +92,14 @@ public struct Text: _PrimitiveView, Equatable {
 
   public init<S>(_ content: S) where S: StringProtocol {
     self.init(storage: .verbatim(String(content)))
+  }
+
+  public func _visit<V: ViewWalker>(_ visitor: inout V) {
+    visitor.visitText(self)
+  }
+
+  public func _createTarget(renderer: LVGLRenderer, parent: UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t>? {
+    lv_label_create(parent)
   }
 }
 

@@ -30,14 +30,21 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
   }
 
   mutating func visit<P: DynamicProperty>(_ property: inout P) {
+    property.visit(&self)
+  }
+
+  mutating func visitState<V>(_ state: inout State<V>) {
     if let fiber = currentFiber {
-      if var state = property as? StateProtocol {
-        state._link(to: fiber, at: dynamicPropertyIndex, redraw: { [renderer] in
-          renderer.requestRedraw()
-        })
-        property = state as! P
-      }
+      state._link(to: fiber, at: dynamicPropertyIndex, redraw: { [renderer] in
+        renderer.requestRedraw()
+      })
     }
+    dynamicPropertyIndex += 1
+  }
+
+  mutating func visitBinding<V>(_ binding: inout Binding<V>) {
+    // Bindings don't typically need linking in the same way State does,
+    // but we increment the index for consistency if needed.
     dynamicPropertyIndex += 1
   }
 
@@ -45,12 +52,12 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
     let originalFiber = currentFiber
     let originalIndex = childIndex
     let originalPropertyIndex = dynamicPropertyIndex
-    
+
     let entry = currentFiber?.reconcileChild(A.self, at: childIndex, identity: nil)
     currentFiber = entry?.fiber
     childIndex = 0
     dynamicPropertyIndex = 0
-    
+
     var app = app
     app.visitProperties(&self)
     app.body.walk(&self)
@@ -69,12 +76,12 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
     let originalFiber = currentFiber
     let originalIndex = childIndex
     let originalPropertyIndex = dynamicPropertyIndex
-    
+
     let entry = currentFiber?.reconcileChild(S.self, at: childIndex, identity: nil)
     currentFiber = entry?.fiber
     childIndex = 0
     dynamicPropertyIndex = 0
-    
+
     var scene = scene
     scene.visitProperties(&self)
 
@@ -93,11 +100,17 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
   }
 
   mutating func visit<V: View>(_ view: V) {
+    view._visit(&self)
+  }
+
+  // MARK: - Specialized View Visitors
+
+  private mutating func visitPrimitive<V: View>(_ view: V, update: (UnsafeMutablePointer<lv_obj_t>) -> Void) {
     let originalFiber = currentFiber
     let originalIndex = childIndex
     let originalPropertyIndex = dynamicPropertyIndex
     
-    let identity = (view as? any ReconciliationIdentityView)?.reconciliationIdentity
+    let identity = view.reconciliationIdentity
     let entry = currentFiber?.reconcileChild(V.self, at: childIndex, identity: identity)
     let fiber = entry?.fiber
     currentFiber = fiber
@@ -107,59 +120,80 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
     var view = view
     view.visitProperties(&self)
     
-    // If we have a fiber, we can reuse or update its target
     let target: UnsafeMutablePointer<lv_obj_t>
-    
     if let existingTarget = fiber?.target {
       target = existingTarget.assumingMemoryBound(to: lv_obj_t.self)
-      
-      // Update logic based on type
-      if let text = view as? Text {
-        text.applyTextStyle(to: target)
-      } else if let textField = view as? TextField {
-        textField.updateTextField(target)
-      } else if let image = view as? Image {
-        image.updateImage(target)
-      } else if let color = view as? Color {
-        color.applyFill(to: target)
-      }
-      // ... more update logic
+      update(target)
+    } else if let newTarget = view._createTarget(renderer: renderer, parent: parent) {
+      target = newTarget
+      fiber?.ownsTarget = true
+      fiber?.target = UnsafeMutableRawPointer(target)
+      update(target)
     } else {
-      // Create new target
-      if let text = view as? Text {
-        let label = lv_label_create(parent)!
-        text.applyTextStyle(to: label)
-        target = label
-        fiber?.ownsTarget = true
-      } else if let widget = view as? any AnyLVGLWidget {
-        target = widget.new(renderer, parent)
-        fiber?.ownsTarget = true
-      } else {
-        // Fallback for non-primitives that are visited
-        target = parent
-        fiber?.ownsTarget = false
-      }
-      
-      // Store in fiber if we have one
+      // Fallback
+      target = parent
+      fiber?.ownsTarget = false
       fiber?.target = UnsafeMutableRawPointer(target)
     }
 
-    if let scrollTargetView = view as? any ScrollTargetView, let fiber {
-      renderer.registerScrollTarget(scrollTargetView.scrollTargetID, target: target, fiber: fiber)
+    if let scrollID = view.scrollTargetID, let fiber {
+      renderer.registerScrollTarget(scrollID, target: target, fiber: fiber)
     }
 
-    // Primitive views don't have bodies to walk, they manage their own children.
-    // Non-primitives walk their body.
-    if !(view is any _PrimitiveView) {
-      let originalParent = parent
-      if let contentParentProvider = view as? any LVGLContentParentProvider {
-        parent = contentParentProvider.contentParent(for: target)
-      } else {
-        parent = target
-      }
-      view.body.walk(&self)
-      parent = originalParent
+    renderer.cleanup(entry?.replaced)
+    if let fiber {
+      renderer.cleanup(fiber.pruneChildren(after: childIndex - 1))
     }
+
+    currentFiber = originalFiber
+    childIndex = originalIndex + 1
+    dynamicPropertyIndex = originalPropertyIndex
+  }
+
+  private mutating func visitContainer<V: View>(
+    _ view: V,
+    update: (UnsafeMutablePointer<lv_obj_t>) -> Void,
+    afterChildren: (UnsafeMutablePointer<lv_obj_t>) -> Void = { _ in }
+  ) {
+    let originalFiber = currentFiber
+    let originalIndex = childIndex
+    let originalPropertyIndex = dynamicPropertyIndex
+
+    let identity = view.reconciliationIdentity
+    let entry = currentFiber?.reconcileChild(V.self, at: childIndex, identity: identity)
+    let fiber = entry?.fiber
+    currentFiber = fiber
+    childIndex = 0
+    dynamicPropertyIndex = 0
+
+    var view = view
+    view.visitProperties(&self)
+
+    let target: UnsafeMutablePointer<lv_obj_t>
+    if let existingTarget = fiber?.target {
+      target = existingTarget.assumingMemoryBound(to: lv_obj_t.self)
+      update(target)
+    } else if let newTarget = view._createTarget(renderer: renderer, parent: parent) {
+      target = newTarget
+      fiber?.ownsTarget = true
+      fiber?.target = UnsafeMutableRawPointer(target)
+      update(target)
+    } else {
+      // Fallback
+      target = parent
+      fiber?.ownsTarget = false
+      fiber?.target = UnsafeMutableRawPointer(target)
+    }
+
+    let originalParent = parent
+    if let customParent = view._contentParent(for: target) {
+      parent = customParent
+    } else {
+      parent = target
+    }
+    view.body.walk(&self)
+    afterChildren(target)
+    parent = originalParent
 
     renderer.cleanup(entry?.replaced)
     if let fiber {
@@ -169,6 +203,178 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
     currentFiber = originalFiber
     childIndex = originalIndex + 1
     dynamicPropertyIndex = originalPropertyIndex
+  }
+
+  mutating func visitText(_ view: Text) {
+    visitPrimitive(view, update: { view.applyTextStyle(to: $0) })
+  }
+
+  mutating func visitVStack<V: View>(_ view: VStack<V>) {
+    visitContainer(view, update: { view.applyLayout(to: $0) })
+  }
+
+  mutating func visitHStack<V: View>(_ view: HStack<V>) {
+    visitContainer(view, update: { view.applyLayout(to: $0) })
+  }
+
+  mutating func visitZStack<V: View>(_ view: ZStack<V>) {
+    visitContainer(view, update: { _ in })
+  }
+
+  mutating func visitButton<V: View>(_ view: Button<V>) {
+    visitContainer(view, update: { _ in })
+  }
+
+  mutating func visitSpacer(_ view: Spacer) {
+    visitPrimitive(view, update: { _ in })
+  }
+
+  mutating func visitDivider(_ view: Divider) {
+    // Implement if Divider is added
+  }
+
+  mutating func visitImage(_ view: Image) {
+    visitPrimitive(view, update: { view.updateImage($0) })
+  }
+
+  mutating func visitTextField(_ view: TextField) {
+    visitPrimitive(view, update: { view.updateTextField($0) })
+  }
+
+  mutating func visitForEach<Data, ID, Content>(_ view: ForEach<Data, ID, Content>) {
+    // ForEach needs special handling for reconciliation
+    view.body.walk(&self)
+  }
+
+  mutating func visitGroup<V: View>(_ view: Group<V>) {
+    view.content.walk(&self)
+  }
+
+  mutating func visitScrollView<V: View>(_ view: ScrollView<V>) {
+    visitContainer(view, update: { _ in })
+  }
+
+  mutating func visitScrollViewReader<V: View>(_ view: ScrollViewReader<V>) {
+    view.body.walk(&self)
+  }
+
+  mutating func visitContentUnavailableView(_ view: ContentUnavailableView) {
+    visitContainer(view, update: { _ in })
+  }
+
+  mutating func visitIdentifiedView<V: View>(_ view: _IdentifiedView<V>) {
+    visitContainer(view, update: { _ in })
+  }
+
+  mutating func visitFrameView<V: View>(_ view: _FrameView<V>) {
+    visitContainer(view, update: { _ in }, afterChildren: { target in
+      lv_obj_update_layout(target)
+      let childCount = lv_obj_get_child_cnt(target)
+      for index in 0..<childCount {
+        guard let child = lv_obj_get_child(target, Int32(index)) else { continue }
+        if tokmakIsFrameSizedControl(view.content) {
+          if let width = view.width {
+            lv_obj_set_width(child, tokmakLVCoord(width))
+          }
+          if let height = view.height {
+            lv_obj_set_height(child, tokmakLVCoord(height))
+          }
+        }
+        lv_obj_align(child, lvAlign(view.alignment), 0, 0)
+      }
+    })
+  }
+
+  mutating func visitPaddingView<V: View>(_ view: _PaddingView<V>) {
+    visitContainer(view, update: { _ in })
+  }
+
+  mutating func visitClipShapeView<V: View, S: Shape>(_ view: _ClipShapeView<V, S>) {
+    visitContainer(
+      view,
+      update: { target in
+        tokmakLVApplyClipShape(view.shape, to: target)
+      },
+      afterChildren: { target in
+        applyClipShapeToTree(view.shape, target: target)
+      }
+    )
+  }
+
+  mutating func visitBackgroundView<V: View>(_ view: _BackgroundView<V>) {
+    visitContainer(
+      view,
+      update: { target in
+        tokmakLVApplyBackground(view.color, to: target)
+      }
+    )
+  }
+
+  mutating func visitForegroundStyleView<V: View>(_ view: _ForegroundStyleView<V>) {
+    visitContainer(
+      view,
+      update: { target in
+        tokmakLVApplyForegroundStyle(view.color, to: target)
+      },
+      afterChildren: { target in
+        applyForegroundStyleToTree(view.color, target: target)
+      }
+    )
+  }
+
+  mutating func visitButtonStyleView<V: View, S: ButtonStyle>(_ view: _ButtonStyleView<V, S>) {
+    visitContainer(
+      view,
+      update: { _ in },
+      afterChildren: { target in
+        applyButtonStyleToImmediateChildren(view.style, target: target)
+      }
+    )
+  }
+
+}
+
+private func applyClipShapeToTree<S: Shape>(_ shape: S, target: UnsafeMutablePointer<lv_obj_t>) {
+  lv_obj_update_layout(target)
+  tokmakLVApplyClipShape(shape, to: target)
+
+  let childCount = lv_obj_get_child_cnt(target)
+  for index in 0..<childCount {
+    guard let child = lv_obj_get_child(target, Int32(index)) else { continue }
+    applyClipShapeToTree(shape, target: child)
+  }
+}
+
+private func applyForegroundStyleToTree(_ color: Color, target: UnsafeMutablePointer<lv_obj_t>) {
+  tokmakLVApplyForegroundStyle(color, to: target)
+
+  let childCount = lv_obj_get_child_cnt(target)
+  for index in 0..<childCount {
+    guard let child = lv_obj_get_child(target, Int32(index)) else { continue }
+    applyForegroundStyleToTree(color, target: child)
+  }
+}
+
+private func applyButtonStyleToImmediateChildren<S: ButtonStyle>(_ style: S, target: UnsafeMutablePointer<lv_obj_t>) {
+  let childCount = lv_obj_get_child_cnt(target)
+  for index in 0..<childCount {
+    guard let child = lv_obj_get_child(target, Int32(index)) else { continue }
+    tokmakLVApplyButtonStyle(style, to: child)
+  }
+}
+
+private func lvAlign(_ alignment: Alignment) -> lv_align_t {
+  switch alignment {
+  case .topLeading: return lv_align_t(LV_ALIGN_TOP_LEFT)
+  case .top: return lv_align_t(LV_ALIGN_TOP_MID)
+  case .topTrailing: return lv_align_t(LV_ALIGN_TOP_RIGHT)
+  case .leading: return lv_align_t(LV_ALIGN_LEFT_MID)
+  case .center: return lv_align_t(LV_ALIGN_CENTER)
+  case .trailing: return lv_align_t(LV_ALIGN_RIGHT_MID)
+  case .bottomLeading: return lv_align_t(LV_ALIGN_BOTTOM_LEFT)
+  case .bottom: return lv_align_t(LV_ALIGN_BOTTOM_MID)
+  case .bottomTrailing: return lv_align_t(LV_ALIGN_BOTTOM_RIGHT)
+  default: return lv_align_t(LV_ALIGN_CENTER)
   }
 }
 

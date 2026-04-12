@@ -14,19 +14,26 @@
 
 import CLVGL
 
-public struct Spacer: _PrimitiveView, AnyLVGLWidget {
-  public let minLength: CGFloat?
+public struct _ClipShapeLayout<S: Shape>: ViewModifier {
+  public let shape: S
 
-  public init(minLength: CGFloat? = nil) {
-    self.minLength = minLength
+  public init(_ shape: S) {
+    self.shape = shape
   }
 
-  public var body: Never {
-    neverBody("Spacer")
+  public func body(content: Content) -> some View {
+    _ClipShapeView(content: content, shape: shape)
   }
+}
+
+public struct _ClipShapeView<Content: View, S: Shape>: View, AnyLVGLWidget {
+  public let content: Content
+  public let shape: S
+
+  public var body: Content { content }
 
   public func _visit<V: ViewWalker>(_ visitor: inout V) {
-    visitor.visitSpacer(self)
+    visitor.visitClipShapeView(self)
   }
 
   public func _createTarget(renderer: LVGLRenderer, parent: UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t>? {
@@ -35,15 +42,30 @@ public struct Spacer: _PrimitiveView, AnyLVGLWidget {
 
   func new(_ renderer: LVGLRenderer, _ parent: UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t> {
     let obj = lv_obj_create(parent)!
-    
+
+    lv_obj_set_width(obj, tokmakLVSizeContent)
+    lv_obj_set_height(obj, tokmakLVSizeContent)
     lv_obj_set_style_pad_all(obj, 0, UInt32(LV_PART_MAIN))
     lv_obj_set_style_border_width(obj, 0, UInt32(LV_PART_MAIN))
     lv_obj_set_style_bg_opa(obj, 0, UInt32(LV_PART_MAIN))
-    
-    // In an LVGL flex layout, flex-grow allows an object to consume available space.
-    // SwiftUI's Spacer pushes content apart by expanding to fill the available space.
-    lv_obj_set_flex_grow(obj, 1)
-    
+    lv_obj_set_layout(obj, tokmakLVLayout(LV_LAYOUT_FLEX))
+    lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN)
+    lv_obj_set_flex_align(obj, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER)
+    tokmakLVApplyClipShape(shape, to: obj)
+
     return obj
+  }
+}
+
+public extension View {
+  func clipShape<S: Shape>(_ shape: S) -> some View {
+    modifier(_ClipShapeLayout(shape))
+  }
+}
+
+func tokmakLVApplyClipShape<S: Shape>(_ shape: S, to obj: UnsafeMutablePointer<lv_obj_t>) {
+  if shape is Circle {
+    lv_obj_set_style_radius(obj, lv_coord_t(LV_RADIUS_CIRCLE), UInt32(LV_PART_MAIN))
+    lv_obj_set_style_clip_corner(obj, true, UInt32(LV_PART_MAIN))
   }
 }

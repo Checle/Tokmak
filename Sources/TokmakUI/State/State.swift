@@ -24,57 +24,82 @@ protocol WritableValueStorage: ValueStorage {
   var setter: ((Any, Transaction) -> ())? { get set }
 }
 public protocol StateProtocol {
-  mutating func _link(to fiber: FiberNode, at index: Int, redraw: @escaping () -> ())
+  mutating func visit<V: PropertyVisitor>(_ visitor: inout V)
 }
 
 @propertyWrapper
 public struct State<Value>: DynamicProperty, StateProtocol {
   private let initialValue: Value
+  private var storage: StateStorage<Value>?
 
   var anyInitialValue: Any { initialValue }
 
-  var getter: (() -> Any)?
-  var setter: ((Any, Transaction) -> ())?
+  var getter: (() -> Any)? {
+    get { { storage?.get() as Any } }
+    set { /* Not used in this implementation */ }
+  }
+
+  var setter: ((Any, Transaction) -> ())? {
+    get { { val, _ in if let v = val as? Value { storage?.set(v) } } }
+    set { /* Not used in this implementation */ }
+  }
 
   public init(wrappedValue value: Value) {
     initialValue = value
   }
 
   public mutating func _link(to fiber: FiberNode, at index: Int, redraw: @escaping () -> ()) {
-    // If the fiber doesn't have a value for this index, use the initial value.
+    self.storage = StateStorage(fiber: fiber, index: index, initialValue: initialValue, redraw: redraw)
+  }
+
+  public mutating func visit<V: PropertyVisitor>(_ visitor: inout V) {
+    visitor.visitState(&self)
+  }
+
+  public var wrappedValue: Value {
+    get { storage?.get() ?? initialValue }
+    nonmutating set { storage?.set(newValue) }
+  }
+
+  public var projectedValue: Binding<Value> {
+    guard let storage = storage else {
+      fatalError("\(#function) not available outside of `body`")
+    }
+    return .init(
+      get: { storage.get() },
+      set: { newValue, _ in
+        storage.set(newValue)
+      }
+    )
+  }
+}
+
+private final class StateStorage<Value> {
+  let fiber: FiberNode
+  let index: Int
+  let initialValue: Value
+  let redraw: () -> ()
+
+  init(fiber: FiberNode, index: Int, initialValue: Value, redraw: @escaping () -> ()) {
+    self.fiber = fiber
+    self.index = index
+    self.initialValue = initialValue
+    self.redraw = redraw
+
     if fiber.stateValues.count <= index {
       while fiber.stateValues.count <= index {
         fiber.stateValues.append(initialValue)
       }
     }
-
-    getter = { [fiber] in
-      fiber.stateValues[index]
-    }
-
-    setter = { [fiber, redraw] newValue, _ in
-      fiber.stateValues[index] = newValue
-      redraw()
-    }
   }
 
-  public var wrappedValue: Value {
-    get { getter?() as? Value ?? initialValue }
-    nonmutating set { setter?(newValue, Transaction._active ?? .init(animation: nil)) }
+  func get() -> Value {
+    (fiber.stateValues[index] as? Value) ?? initialValue
   }
 
-  public var projectedValue: Binding<Value> {
-    guard let getter = getter, let setter = setter else {
-      fatalError("\(#function) not available outside of `body`")
-    }
-    // swiftlint:disable force_cast
-    return .init(
-      get: { getter() as! Value },
-      set: { newValue, transaction in
-        setter(newValue, Transaction._active ?? transaction)
-      }
-    )
-    // swiftlint:enable force_cast
+  func set(_ newValue: Value) {
+    fiber.stateValues[index] = newValue
+    redraw()
   }
 }
 

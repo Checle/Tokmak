@@ -91,9 +91,9 @@ public extension App {
     // This is useful for simulators or if the user initializes LVGL entirely manually.
     lv_init()
     let renderer = LVGLRenderer()
-    renderer.render(app)
+    var visitor = LVGLVisitor(parent: lv_scr_act(), renderer: renderer, rootFiber: FiberNode())
+    app.walk(&visitor)
   }
-
   /// The primary entry point for Embedded Swift applications.
   /// Wires up the LVGL display driver using the provided configuration.
   static func main(display: DisplayConfiguration) {

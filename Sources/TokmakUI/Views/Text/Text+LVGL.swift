@@ -36,7 +36,46 @@ extension Text: AnyLVGLWidget {
       tokmakLVTextAlign(resolvedAlignment),
       UInt32(LV_PART_MAIN)
     )
-    if let foregroundColor = proxy.environment.foregroundColor {
+
+    let font = proxy.modifiers.compactMap { modifier -> Font? in
+      if case let .font(font) = modifier {
+        return font
+      }
+      return nil
+    }.last
+    if let font {
+      let resolvedFont = _FontProxy(font).resolve(in: proxy.environment)
+      lv_obj_set_style_text_font(
+        label,
+        tokmak_lv_font_montserrat(Int32(resolvedFont._size.rounded())),
+        UInt32(LV_PART_MAIN)
+      )
+    }
+
+    let letterSpacing = proxy.modifiers.compactMap { modifier -> CGFloat? in
+      switch modifier {
+      case let .kerning(value), let .tracking(value):
+        return value
+      default:
+        return nil
+      }
+    }.last
+    if let letterSpacing {
+      lv_obj_set_style_text_letter_space(
+        label,
+        tokmakLVCoord(letterSpacing),
+        UInt32(LV_PART_MAIN)
+      )
+    }
+
+    let foregroundColor = proxy.modifiers.compactMap { modifier -> Color? in
+      if case let .color(color) = modifier {
+        return color
+      }
+      return nil
+    }.last
+
+    if let foregroundColor {
       lv_obj_set_style_text_color(
         label,
         tokmakLVMonochromeColor(foregroundColor, in: proxy.environment),

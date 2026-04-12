@@ -35,6 +35,10 @@ public struct Binding<Value>: DynamicProperty {
 
   public var projectedValue: Binding<Value> { self }
 
+  public mutating func visit<V: PropertyVisitor>(_ visitor: inout V) {
+    visitor.visitBinding(&self)
+  }
+
   public init(get: @escaping () -> Value, set: @escaping (Value) -> ()) {
     self.get = get
     self.set = { v, _ in set(v) }

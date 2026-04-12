@@ -25,43 +25,48 @@ public struct TokmakIdentityKey: Hashable {
 
   private let storage: Storage
 
-  init<ID: Hashable>(_ value: ID) {
-    if let value = value as? Int {
-      storage = .int(value)
-    } else if let value = value as? UInt {
-      storage = .uint(value)
-    } else if let value = value as? String {
-      storage = .string(value)
-    } else if let value = value as? Bool {
-      storage = .bool(value)
-    } else {
-      var valueHasher = Hasher()
-      value.hash(into: &valueHasher)
+  public init(_ value: Int) {
+    storage = .int(value)
+  }
 
-      storage = .raw(valueHash: valueHasher.finalize())
-    }
+  public init(_ value: UInt) {
+    storage = .uint(value)
+  }
+
+  public init(_ value: String) {
+    storage = .string(value)
+  }
+
+  public init(_ value: Bool) {
+    storage = .bool(value)
+  }
+
+  public init<ID: Hashable>(_ value: ID) {
+    var valueHasher = Hasher()
+    value.hash(into: &valueHasher)
+    storage = .raw(valueHash: valueHasher.finalize())
   }
 }
 
-protocol ScrollTargetView {
-  var scrollTargetID: TokmakIdentityKey { get }
-}
-
-protocol ReconciliationIdentityView {
-  var reconciliationIdentity: TokmakIdentityKey { get }
-}
-
-struct _IdentifiedView<Content: View>: View, AnyLVGLWidget, ScrollTargetView, ReconciliationIdentityView {
+public struct _IdentifiedView<Content: View>: View, AnyLVGLWidget {
   let content: Content
-  let scrollTargetID: TokmakIdentityKey
+  public let scrollTargetID: TokmakIdentityKey?
 
-  var reconciliationIdentity: TokmakIdentityKey {
+  public var reconciliationIdentity: TokmakIdentityKey? {
     scrollTargetID
   }
 
-  var body: Content { content }
+  public var body: Content { content }
 
-  func new(
+  public func _visit<V: ViewWalker>(_ visitor: inout V) {
+    visitor.visitIdentifiedView(self)
+  }
+
+  public func _createTarget(renderer: LVGLRenderer, parent: UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t>? {
+    new(renderer, parent)
+  }
+
+  public func new(
     _ renderer: LVGLRenderer,
     _ parent: UnsafeMutablePointer<lv_obj_t>
   ) -> UnsafeMutablePointer<lv_obj_t> {

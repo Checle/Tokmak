@@ -14,6 +14,12 @@
 
 import CLVGL
 
+protocol _FrameSizedControl {}
+
+protocol _FrameSizedContent {
+  var _frameSizedContent: AnyView { get }
+}
+
 public struct _FrameLayout: ViewModifier {
   public let width: CGFloat?
   public let height: CGFloat?
@@ -37,6 +43,14 @@ public struct _FrameView<Content: View>: View, AnyLVGLWidget {
   public let alignment: Alignment
 
   public var body: Content { content }
+
+  public func _visit<V: ViewWalker>(_ visitor: inout V) {
+    visitor.visitFrameView(self)
+  }
+
+  public func _createTarget(renderer: LVGLRenderer, parent: UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t>? {
+    new(renderer, parent)
+  }
 
   func new(_ renderer: LVGLRenderer, _ parent: UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t> {
     let obj = lv_obj_create(parent)!
@@ -85,4 +99,38 @@ public extension View {
   func frame(width: CGFloat? = nil, height: CGFloat? = nil, alignment: Alignment = .center) -> some View {
     modifier(_FrameLayout(width: width, height: height, alignment: alignment))
   }
+}
+
+extension Button: _FrameSizedControl {}
+
+extension _ViewModifier_Content: _FrameSizedContent {
+  var _frameSizedContent: AnyView { view }
+}
+
+func tokmakIsFrameSizedControl<Content: View>(_ content: Content) -> Bool {
+  if content is _FrameSizedControl {
+    return true
+  }
+
+  guard let framedContent = content as? _FrameSizedContent else {
+    return false
+  }
+
+  return tokmakAnyViewIsFrameSizedControl(framedContent._frameSizedContent)
+}
+
+private func tokmakAnyViewIsFrameSizedControl(_ anyView: AnyView) -> Bool {
+  #if hasFeature(Embedded)
+  false
+  #else
+  if anyView.view is _FrameSizedControl {
+    return true
+  }
+
+  if let framedContent = anyView.view as? _FrameSizedContent {
+    return tokmakAnyViewIsFrameSizedControl(framedContent._frameSizedContent)
+  }
+
+  return false
+  #endif
 }

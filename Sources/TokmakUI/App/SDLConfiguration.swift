@@ -22,8 +22,8 @@ public extension App {
     /// using SDL2. This bypasses the E-Paper driver completely and renders
     /// to an interactive desktop window.
     static func main() {
-        let width = 800
-        let height = 480
+        let width = 390
+        let height = 720
         lv_init()
         tokmak_sdl_init(Int32(width), Int32(height))
 

@@ -28,9 +28,9 @@ public enum Edge: Int8, CaseIterable {
     public static let bottom: Edge.Set = .init(rawValue: 1 << 2)
     public static let trailing: Edge.Set = .init(rawValue: 1 << 3)
 
-    public static let all: Edge.Set = [.top, .leading, .bottom, .trailing]
-    public static let horizontal: Edge.Set = [.leading, .trailing]
-    public static let vertical: Edge.Set = [.top, .bottom]
+    public static let all: Edge.Set = Edge.Set(rawValue: top.rawValue | leading.rawValue | bottom.rawValue | trailing.rawValue)
+    public static let horizontal: Edge.Set = Edge.Set(rawValue: leading.rawValue | trailing.rawValue)
+    public static let vertical: Edge.Set = Edge.Set(rawValue: top.rawValue | bottom.rawValue)
 
     public init(_ e: Edge) {
       switch e {

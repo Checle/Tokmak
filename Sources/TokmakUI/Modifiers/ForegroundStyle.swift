@@ -14,19 +14,26 @@
 
 import CLVGL
 
-public struct Spacer: _PrimitiveView, AnyLVGLWidget {
-  public let minLength: CGFloat?
+public struct _ForegroundStyleLayout: ViewModifier {
+  public let color: Color
 
-  public init(minLength: CGFloat? = nil) {
-    self.minLength = minLength
+  public init(_ color: Color) {
+    self.color = color
   }
 
-  public var body: Never {
-    neverBody("Spacer")
+  public func body(content: Content) -> some View {
+    _ForegroundStyleView(content: content, color: color)
   }
+}
+
+public struct _ForegroundStyleView<Content: View>: View, AnyLVGLWidget {
+  public let content: Content
+  public let color: Color
+
+  public var body: Content { content }
 
   public func _visit<V: ViewWalker>(_ visitor: inout V) {
-    visitor.visitSpacer(self)
+    visitor.visitForegroundStyleView(self)
   }
 
   public func _createTarget(renderer: LVGLRenderer, parent: UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t>? {
@@ -35,15 +42,27 @@ public struct Spacer: _PrimitiveView, AnyLVGLWidget {
 
   func new(_ renderer: LVGLRenderer, _ parent: UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t> {
     let obj = lv_obj_create(parent)!
-    
+
+    lv_obj_set_width(obj, tokmakLVSizeContent)
+    lv_obj_set_height(obj, tokmakLVSizeContent)
     lv_obj_set_style_pad_all(obj, 0, UInt32(LV_PART_MAIN))
     lv_obj_set_style_border_width(obj, 0, UInt32(LV_PART_MAIN))
     lv_obj_set_style_bg_opa(obj, 0, UInt32(LV_PART_MAIN))
-    
-    // In an LVGL flex layout, flex-grow allows an object to consume available space.
-    // SwiftUI's Spacer pushes content apart by expanding to fill the available space.
-    lv_obj_set_flex_grow(obj, 1)
-    
+    lv_obj_set_layout(obj, tokmakLVLayout(LV_LAYOUT_FLEX))
+    lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN)
+    lv_obj_set_flex_align(obj, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER)
+    tokmakLVApplyForegroundStyle(color, to: obj)
+
     return obj
   }
+}
+
+public extension View {
+  func foregroundStyle(_ color: Color) -> some View {
+    modifier(_ForegroundStyleLayout(color))
+  }
+}
+
+func tokmakLVApplyForegroundStyle(_ color: Color, to obj: UnsafeMutablePointer<lv_obj_t>) {
+  lv_obj_set_style_text_color(obj, tokmakLVMonochromeColor(color), UInt32(LV_PART_MAIN))
 }

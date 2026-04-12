@@ -23,22 +23,23 @@ public struct ZStack<Content: View>: View, AnyLVGLWidget {
 
   public var body: Content { content }
 
+  public func _visit<V: ViewWalker>(_ visitor: inout V) {
+    visitor.visitZStack(self)
+  }
+
+  public func _createTarget(renderer: LVGLRenderer, parent: UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t>? {
+    new(renderer, parent)
+  }
+
   func new(_ renderer: LVGLRenderer, _ parent: UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t> {
     let obj = lv_obj_create(parent)!
     lv_obj_set_width(obj, tokmakLVSizeContent)
     lv_obj_set_height(obj, tokmakLVSizeContent)
-    
-    // ZStack defaults to center alignment for all its children.
-    // In LVGL, we can achieve this by setting the flex layout to center, 
-    // or by overriding child alignment. However, a simpler way is to set 
-    // the layout to grid, placing everything in a single cell, or using flex
-    // with no wrap and center align. Let's just remove the default padding for now.
+
     lv_obj_set_style_pad_all(obj, 0, UInt32(LV_PART_MAIN))
     lv_obj_set_style_border_width(obj, 0, UInt32(LV_PART_MAIN))
     lv_obj_set_style_bg_opa(obj, 0, UInt32(LV_PART_MAIN))
-    
-    // Using grid to overlay children in the same cell.
-    // In LVGL, grid with 1 row 1 col will place everything in that cell, stacking them.
+
     let col_dsc = UnsafeMutablePointer<lv_coord_t>.allocate(capacity: 2)
     col_dsc[0] = tokmakLVGridFraction(1)
     col_dsc[1] = tokmakLVGridTemplateLast

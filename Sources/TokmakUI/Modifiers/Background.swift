@@ -14,21 +14,26 @@
 
 import CLVGL
 
-public struct HStack<Content: View>: View, AnyLVGLWidget {
-  public let alignment: VerticalAlignment
-  public let spacing: CGFloat?
-  public let content: Content
+public struct _BackgroundLayout: ViewModifier {
+  public let color: Color
 
-  public init(alignment: VerticalAlignment = .center, spacing: CGFloat? = nil, @ViewBuilder content: () -> Content) {
-    self.alignment = alignment
-    self.spacing = spacing
-    self.content = content()
+  public init(_ color: Color) {
+    self.color = color
   }
+
+  public func body(content: Content) -> some View {
+    _BackgroundView(content: content, color: color)
+  }
+}
+
+public struct _BackgroundView<Content: View>: View, AnyLVGLWidget {
+  public let content: Content
+  public let color: Color
 
   public var body: Content { content }
 
   public func _visit<V: ViewWalker>(_ visitor: inout V) {
-    visitor.visitHStack(self)
+    visitor.visitBackgroundView(self)
   }
 
   public func _createTarget(renderer: LVGLRenderer, parent: UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t>? {
@@ -37,27 +42,27 @@ public struct HStack<Content: View>: View, AnyLVGLWidget {
 
   func new(_ renderer: LVGLRenderer, _ parent: UnsafeMutablePointer<lv_obj_t>) -> UnsafeMutablePointer<lv_obj_t> {
     let obj = lv_obj_create(parent)!
-    applyLayout(to: obj)
 
+    lv_obj_set_width(obj, tokmakLVSizeContent)
+    lv_obj_set_height(obj, tokmakLVSizeContent)
     lv_obj_set_style_pad_all(obj, 0, UInt32(LV_PART_MAIN))
     lv_obj_set_style_border_width(obj, 0, UInt32(LV_PART_MAIN))
-    lv_obj_set_style_bg_opa(obj, 0, UInt32(LV_PART_MAIN))
+    lv_obj_set_layout(obj, tokmakLVLayout(LV_LAYOUT_FLEX))
+    lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN)
+    lv_obj_set_flex_align(obj, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER)
+    tokmakLVApplyBackground(color, to: obj)
 
     return obj
   }
+}
 
-  func applyLayout(to obj: UnsafeMutablePointer<lv_obj_t>) {
-    lv_obj_set_layout(obj, tokmakLVLayout(LV_LAYOUT_FLEX))
-    lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW)
-    lv_obj_set_flex_align(obj, LV_FLEX_ALIGN_START, crossAxisAlignment, LV_FLEX_ALIGN_CENTER)
-    lv_obj_set_width(obj, tokmakLVSizeContent)
-    lv_obj_set_height(obj, tokmakLVSizeContent)
-    lv_obj_set_style_pad_column(obj, tokmakLVCoord(spacing ?? 0), UInt32(LV_PART_MAIN))
+public extension View {
+  func background(_ color: Color) -> some View {
+    modifier(_BackgroundLayout(color))
   }
+}
 
-  private var crossAxisAlignment: lv_flex_align_t {
-    if alignment == .top { return LV_FLEX_ALIGN_START }
-    if alignment == .bottom { return LV_FLEX_ALIGN_END }
-    return LV_FLEX_ALIGN_CENTER
-  }
+func tokmakLVApplyBackground(_ color: Color, to obj: UnsafeMutablePointer<lv_obj_t>) {
+  lv_obj_set_style_bg_color(obj, tokmakLVMonochromeColor(color), UInt32(LV_PART_MAIN))
+  lv_obj_set_style_bg_opa(obj, lv_opa_t(LV_OPA_COVER), UInt32(LV_PART_MAIN))
 }

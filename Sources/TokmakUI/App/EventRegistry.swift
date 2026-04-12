@@ -37,7 +37,8 @@ struct EventRegistry {
     }
     
     static func unregister(obj: UnsafeMutablePointer<lv_obj_t>) {
-        actions.removeValue(forKey: UnsafeMutableRawPointer(obj))
+        let key = UnsafeMutableRawPointer(obj)
+        actions.removeValue(forKey: key)
     }
 }
 
@@ -45,7 +46,7 @@ struct EventRegistry {
 @_cdecl("tokmak_lvgl_event_handler")
 func tokmak_lvgl_event_handler(e: UnsafeMutablePointer<lv_event_t>?) {
     guard let e = e else { return }
-    let obj = lv_event_get_target(e)
+    let obj = lv_event_get_current_target(e)
     let code = lv_event_get_code(e)
     
     if code == LV_EVENT_CLICKED {

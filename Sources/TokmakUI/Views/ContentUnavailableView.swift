@@ -155,6 +155,10 @@ public struct ContentUnavailableView: View {
     .frame(width: 520, alignment: .center)
   }
 
+  public func _visit<V: ViewWalker>(_ visitor: inout V) {
+    visitor.visitContentUnavailableView(self)
+  }
+
   public func walk<V: ViewWalker>(_ visitor: inout V) {
     visitor.visit(self)
   }
