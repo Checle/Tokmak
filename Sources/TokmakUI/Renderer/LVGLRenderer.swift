@@ -221,6 +221,63 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
     visitContainer(view, update: { _ in })
   }
 
+  mutating func visitTabView<V: View>(_ view: TabView<V>) {
+    let originalFiber = currentFiber
+    let originalIndex = childIndex
+    let originalPropertyIndex = dynamicPropertyIndex
+
+    let identity = view.reconciliationIdentity
+    let entry = currentFiber?.reconcileChild(TabView<V>.self, at: childIndex, identity: identity)
+    let fiber = entry?.fiber
+    currentFiber = fiber
+    childIndex = 0
+    dynamicPropertyIndex = 0
+
+    var view = view
+    view.visitProperties(&self)
+
+    let target: UnsafeMutablePointer<lv_obj_t>
+    let shouldCreateTabs: Bool
+    if let existingTarget = fiber?.target {
+      target = existingTarget.assumingMemoryBound(to: lv_obj_t.self)
+      shouldCreateTabs = false
+    } else if let newTarget = view._createTarget(renderer: renderer, parent: parent) {
+      target = newTarget
+      shouldCreateTabs = true
+      fiber?.ownsTarget = true
+      fiber?.target = UnsafeMutableRawPointer(target)
+    } else {
+      target = parent
+      shouldCreateTabs = false
+      fiber?.ownsTarget = false
+      fiber?.target = UnsafeMutableRawPointer(target)
+    }
+
+    let tabs = tokmakTabChildren(from: view.content)
+    let originalParent = parent
+    for tab in tabs {
+      if shouldCreateTabs {
+        parent = tokmakLVCreateTabPage(in: target, title: tokmakTabTitle(from: tab))
+      } else if let content = lv_tabview_get_content(target),
+                let page = lv_obj_get_child(content, Int32(childIndex)) {
+        parent = page
+      } else {
+        parent = target
+      }
+      tokmakTabContent(from: tab).walk(&self)
+    }
+    parent = originalParent
+
+    renderer.cleanup(entry?.replaced)
+    if let fiber {
+      renderer.cleanup(fiber.pruneChildren(after: childIndex - 1))
+    }
+
+    currentFiber = originalFiber
+    childIndex = originalIndex + 1
+    dynamicPropertyIndex = originalPropertyIndex
+  }
+
   mutating func visitButton<V: View>(_ view: Button<V>) {
     visitContainer(view, update: { _ in })
   }
@@ -332,6 +389,17 @@ struct LVGLVisitor: ReconciliationWalker, AppWalker, PropertyVisitor {
     )
   }
 
+}
+
+private func tokmakLVCreateTabPage(in target: UnsafeMutablePointer<lv_obj_t>, title: String) -> UnsafeMutablePointer<lv_obj_t> {
+  let page = title.withCString { lv_tabview_add_tab(target, $0)! }
+  lv_obj_set_layout(page, tokmakLVLayout(LV_LAYOUT_FLEX))
+  lv_obj_set_flex_flow(page, LV_FLEX_FLOW_COLUMN)
+  lv_obj_set_flex_align(page, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER)
+  lv_obj_set_style_pad_all(page, 0, UInt32(LV_PART_MAIN))
+  lv_obj_set_style_border_width(page, 0, UInt32(LV_PART_MAIN))
+  lv_obj_set_style_bg_opa(page, 0, UInt32(LV_PART_MAIN))
+  return page
 }
 
 private func applyClipShapeToTree<S: Shape>(_ shape: S, target: UnsafeMutablePointer<lv_obj_t>) {

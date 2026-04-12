@@ -26,6 +26,7 @@ public protocol ViewWalker {
   mutating func visitVStack<V: View>(_ view: VStack<V>)
   mutating func visitHStack<V: View>(_ view: HStack<V>)
   mutating func visitZStack<V: View>(_ view: ZStack<V>)
+  mutating func visitTabView<V: View>(_ view: TabView<V>)
   mutating func visitButton<V: View>(_ view: Button<V>)
   mutating func visitSpacer(_ view: Spacer)
   mutating func visitDivider(_ view: Divider)

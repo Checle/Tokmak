@@ -126,6 +126,33 @@ public struct TupleView<T>: _PrimitiveView, View {
   }
 }
 
+extension TupleView: ParentView {
+  public var children: [AnyView] {
+    if let v = value as? (any View, any View) {
+      return [AnyView(v.0), AnyView(v.1)]
+    } else if let v = value as? (any View, any View, any View) {
+      return [AnyView(v.0), AnyView(v.1), AnyView(v.2)]
+    } else if let v = value as? (any View, any View, any View, any View) {
+      return [AnyView(v.0), AnyView(v.1), AnyView(v.2), AnyView(v.3)]
+    } else if let v = value as? (any View, any View, any View, any View, any View) {
+      return [AnyView(v.0), AnyView(v.1), AnyView(v.2), AnyView(v.3), AnyView(v.4)]
+    } else if let v = value as? (any View, any View, any View, any View, any View, any View) {
+      return [AnyView(v.0), AnyView(v.1), AnyView(v.2), AnyView(v.3), AnyView(v.4), AnyView(v.5)]
+    } else if let v = value as? (any View, any View, any View, any View, any View, any View, any View) {
+      return [AnyView(v.0), AnyView(v.1), AnyView(v.2), AnyView(v.3), AnyView(v.4), AnyView(v.5), AnyView(v.6)]
+    } else if let v = value as? (any View, any View, any View, any View, any View, any View, any View, any View) {
+      return [AnyView(v.0), AnyView(v.1), AnyView(v.2), AnyView(v.3), AnyView(v.4), AnyView(v.5), AnyView(v.6), AnyView(v.7)]
+    } else if let v = value as? (any View, any View, any View, any View, any View, any View, any View, any View, any View) {
+      return [AnyView(v.0), AnyView(v.1), AnyView(v.2), AnyView(v.3), AnyView(v.4), AnyView(v.5), AnyView(v.6), AnyView(v.7), AnyView(v.8)]
+    } else if let v = value as? (any View, any View, any View, any View, any View, any View, any View, any View, any View, any View) {
+      return [AnyView(v.0), AnyView(v.1), AnyView(v.2), AnyView(v.3), AnyView(v.4), AnyView(v.5), AnyView(v.6), AnyView(v.7), AnyView(v.8), AnyView(v.9)]
+    } else if let v = value as? any View {
+      return [AnyView(v)]
+    }
+    return []
+  }
+}
+
 func walkAny<V: ViewWalker>(_ view: Any, _ visitor: inout V) {
   if let view = view as? any View {
     view.walk(&visitor)
