@@ -45,9 +45,10 @@ extension Text: AnyLVGLWidget {
     }.last
     if let font {
       let resolvedFont = _FontProxy(font).resolve(in: proxy.environment)
+      let weight = resolvedFont._bold ? Font.Weight.bold.value : resolvedFont._weight.value
       lv_obj_set_style_text_font(
         label,
-        tokmak_lv_font_montserrat(Int32(resolvedFont._size.rounded())),
+        tokmak_lv_font_noto_sans(Int32(resolvedFont._size.rounded()), Int32(weight)),
         UInt32(LV_PART_MAIN)
       )
     }

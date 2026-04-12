@@ -15,6 +15,13 @@
 
 #include "epd_uc8253.h"
 
+extern const lv_font_t lv_font_noto_sans_light_32;
+extern const lv_font_t lv_font_noto_sans_light_56;
+extern const lv_font_t lv_font_noto_sans_regular_14;
+extern const lv_font_t lv_font_noto_sans_regular_16;
+extern const lv_font_t lv_font_noto_sans_bold_14;
+extern const lv_font_t lv_font_noto_sans_bold_16;
+
 static inline const lv_font_t *tokmak_lv_font_montserrat(int size) {
     if(size < 9) return &lv_font_montserrat_8;
     if(size < 11) return &lv_font_montserrat_10;
@@ -37,4 +44,27 @@ static inline const lv_font_t *tokmak_lv_font_montserrat(int size) {
     if(size < 45) return &lv_font_montserrat_44;
     if(size < 47) return &lv_font_montserrat_46;
     return &lv_font_montserrat_48;
+}
+
+static inline const lv_font_t *tokmak_lv_font_noto_sans_light(int size) {
+    if(size < 44) return &lv_font_noto_sans_light_32;
+    return &lv_font_noto_sans_light_56;
+}
+
+static inline const lv_font_t *tokmak_lv_font_noto_sans_regular(int size) {
+    if(size < 15) return &lv_font_noto_sans_regular_14;
+    if(size < 17) return &lv_font_noto_sans_regular_16;
+    return tokmak_lv_font_montserrat(size);
+}
+
+static inline const lv_font_t *tokmak_lv_font_noto_sans_bold(int size) {
+    if(size < 15) return &lv_font_noto_sans_bold_14;
+    if(size < 17) return &lv_font_noto_sans_bold_16;
+    return tokmak_lv_font_montserrat(size);
+}
+
+static inline const lv_font_t *tokmak_lv_font_noto_sans(int size, int weight) {
+    if(weight <= 300 && size >= 28) return tokmak_lv_font_noto_sans_light(size);
+    if(weight >= 600) return tokmak_lv_font_noto_sans_bold(size);
+    return tokmak_lv_font_noto_sans_regular(size);
 }
