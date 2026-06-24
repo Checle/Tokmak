@@ -1,0 +1,47 @@
+// Copyright 2026 Checle LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+
+public struct _ButtonStyleLayout<S: ButtonStyle>: ViewModifier {
+  public let style: S
+
+  public init(_ style: S) {
+    self.style = style
+  }
+
+  public func body(content: Content) -> some View {
+    _ButtonStyleView(content: content, style: style)
+  }
+}
+
+public struct _ButtonStyleView<Content: View, S: ButtonStyle>: View {
+  public let content: Content
+  public let style: S
+
+  public var body: Content { content }
+
+  public func _visit<V: ViewWalker>(_ visitor: inout V) {
+    visitor.visitButtonStyleView(self)
+  }
+
+
+}
+
+public extension View {
+  func buttonStyle<S: ButtonStyle>(_ style: S) -> some View {
+    modifier(_ButtonStyleLayout(style))
+  }
+}
+
+

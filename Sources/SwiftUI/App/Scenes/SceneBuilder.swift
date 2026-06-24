@@ -1,0 +1,206 @@
+// Copyright 2020 Tokamak contributors
+// Copyright 2026 Checle LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+//  Created by Carson Katri on 7/16/20.
+//
+
+@resultBuilder
+public enum SceneBuilder {
+  public static func buildBlock<Content: Scene>(_ content: Content) -> some Scene {
+    content
+  }
+
+  public static func buildIf<Content>(_ content: Content?) -> Content? where Content: Scene {
+    content
+  }
+
+  public static func buildEither<TrueContent, FalseContent>(
+    first: TrueContent
+  ) -> _ConditionalScene<TrueContent, FalseContent> where TrueContent: Scene, FalseContent: Scene {
+    .init(storage: .trueContent(first))
+  }
+
+  public static func buildEither<TrueContent, FalseContent>(
+    second: FalseContent
+  ) -> _ConditionalScene<TrueContent, FalseContent> where TrueContent: Scene, FalseContent: Scene {
+    .init(storage: .falseContent(second))
+  }
+}
+
+public struct _ConditionalScene<TrueContent, FalseContent>: Scene
+  where TrueContent: Scene, FalseContent: Scene
+{
+  enum Storage {
+    case trueContent(TrueContent)
+    case falseContent(FalseContent)
+  }
+
+  let storage: Storage
+
+  public var body: Never {
+    neverScene("_ConditionalScene")
+  }
+
+  public func walk<V: SceneWalker>(_ visitor: inout V) {
+    switch storage {
+    case let .trueContent(scene):
+      scene.walk(&visitor)
+    case let .falseContent(scene):
+      scene.walk(&visitor)
+    }
+  }
+}
+
+extension Optional: Scene where Wrapped: Scene {
+  public var body: Never {
+    neverScene("Optional<Scene>")
+  }
+
+  public func walk<V: SceneWalker>(_ visitor: inout V) {
+    switch self {
+    case .none:
+      break
+    case let .some(scene):
+      scene.walk(&visitor)
+    }
+  }
+}
+
+// swiftlint:disable large_tuple
+// swiftlint:disable function_parameter_count
+
+public extension SceneBuilder {
+  static func buildBlock<C0, C1>(_ c0: C0, _ c1: C1) -> some Scene where C0: Scene,
+    C1: Scene
+  {
+    _TupleScene((c0, c1))
+  }
+}
+
+public extension SceneBuilder {
+  static func buildBlock<C0, C1, C2>(_ c0: C0, _ c1: C1, _ c2: C2) -> some Scene
+    where C0: Scene, C1: Scene, C2: Scene
+  {
+    _TupleScene((c0, c1, c2))
+  }
+}
+
+public extension SceneBuilder {
+  static func buildBlock<C0, C1, C2, C3>(
+    _ c0: C0,
+    _ c1: C1,
+    _ c2: C2,
+    _ c3: C3
+  ) -> some Scene where C0: Scene, C1: Scene, C2: Scene, C3: Scene {
+    _TupleScene((c0, c1, c2, c3))
+  }
+}
+
+public extension SceneBuilder {
+  static func buildBlock<C0, C1, C2, C3, C4>(
+    _ c0: C0,
+    _ c1: C1,
+    _ c2: C2,
+    _ c3: C3,
+    _ c4: C4
+  ) -> some Scene where C0: Scene, C1: Scene, C2: Scene, C3: Scene, C4: Scene {
+    _TupleScene((c0, c1, c2, c3, c4))
+  }
+}
+
+public extension SceneBuilder {
+  static func buildBlock<C0, C1, C2, C3, C4, C5>(
+    _ c0: C0,
+    _ c1: C1,
+    _ c2: C2,
+    _ c3: C3,
+    _ c4: C4,
+    _ c5: C5
+  ) -> some Scene where C0: Scene, C1: Scene, C2: Scene, C3: Scene, C4: Scene,
+    C5: Scene
+  {
+    _TupleScene((c0, c1, c2, c3, c4, c5))
+  }
+}
+
+public extension SceneBuilder {
+  static func buildBlock<C0, C1, C2, C3, C4, C5, C6>(
+    _ c0: C0,
+    _ c1: C1,
+    _ c2: C2,
+    _ c3: C3,
+    _ c4: C4,
+    _ c5: C5,
+    _ c6: C6
+  ) -> some Scene where C0: Scene, C1: Scene, C2: Scene, C3: Scene,
+    C4: Scene, C5: Scene, C6: Scene
+  {
+    _TupleScene((c0, c1, c2, c3, c4, c5, c6))
+  }
+}
+
+public extension SceneBuilder {
+  static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7>(
+    _ c0: C0,
+    _ c1: C1,
+    _ c2: C2,
+    _ c3: C3,
+    _ c4: C4,
+    _ c5: C5,
+    _ c6: C6,
+    _ c7: C7
+  ) -> some Scene where C0: Scene, C1: Scene, C2: Scene, C3: Scene, C4: Scene, C5: Scene, C6: Scene,
+    C7: Scene
+  {
+    _TupleScene((c0, c1, c2, c3, c4, c5, c6, c7))
+  }
+}
+
+public extension SceneBuilder {
+  static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7, C8>(
+    _ c0: C0,
+    _ c1: C1,
+    _ c2: C2,
+    _ c3: C3,
+    _ c4: C4,
+    _ c5: C5,
+    _ c6: C6,
+    _ c7: C7,
+    _ c8: C8
+  ) -> some Scene where C0: Scene, C1: Scene, C2: Scene, C3: Scene, C4: Scene, C5: Scene, C6: Scene,
+    C7: Scene, C8: Scene
+  {
+    _TupleScene((c0, c1, c2, c3, c4, c5, c6, c7, c8))
+  }
+}
+
+public extension SceneBuilder {
+  static func buildBlock<C0, C1, C2, C3, C4, C5, C6, C7, C8, C9>(
+    _ c0: C0,
+    _ c1: C1,
+    _ c2: C2,
+    _ c3: C3,
+    _ c4: C4,
+    _ c5: C5,
+    _ c6: C6,
+    _ c7: C7,
+    _ c8: C8,
+    _ c9: C9
+  ) -> some Scene where C0: Scene, C1: Scene, C2: Scene, C3: Scene, C4: Scene, C5: Scene, C6: Scene,
+    C7: Scene, C8: Scene, C9: Scene
+  {
+    _TupleScene((c0, c1, c2, c3, c4, c5, c6, c7, c8, c9))
+  }
+}
